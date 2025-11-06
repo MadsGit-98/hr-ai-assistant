@@ -73,11 +73,26 @@ As a Hiring Manager, I want to edit existing job listings so that I can update r
 - **FR-006**: System MUST ensure only one Job Listing can be designated as "Active" at any time
 - **FR-007**: System MUST validate that Title is provided when creating or editing a job listing
 - **FR-008**: System MUST preserve markdown formatting when displaying job listing descriptions
+- **FR-009**: System operates as proof-of-concept with no authentication required
+- **FR-010**: System MUST enforce data limits: Title max 200 chars, Description max 50000 chars, Skills list max 100 items
+- **FR-011**: System MUST prevent concurrent editing - only one user can edit a job listing at a time
+- **FR-012**: System MUST sanitize HTML in markdown to prevent XSS while allowing safe elements
+- **FR-013**: System MUST automatically set the first created job listing as the active listing
 
 ### Key Entities *(include if feature involves data)*
 
 - **Job Listing**: Represents a single job position with Title (string), Detailed Description (text with markdown), Required Skills (list of strings), Active Status (boolean), Created Date (datetime), Modified Date (datetime)
 - **Required Skill**: Individual skill item that represents a required qualification for the job listing
+
+## Clarifications
+
+### Session 2025-11-06
+
+- Q: Does the system require authentication for users? → A: No authentication (proof of concept)
+- Q: What are the maximum limits for data fields? → A: Title: max 200 chars, Description: max 50000 chars, Skills list: max 100 items
+- Q: How to handle multiple users editing the same job listing? → A: Only one user can edit at a time (no concurrent access)
+- Q: How to handle unsafe markdown/HTML in description? → A: System sanitizes HTML but allows safe markdown elements
+- Q: What should be the active listing status when system starts? → A: System automatically sets the first created listing as active
 
 ## Success Criteria *(mandatory)*
 
