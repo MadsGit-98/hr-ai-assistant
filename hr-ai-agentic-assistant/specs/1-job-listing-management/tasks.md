@@ -29,10 +29,10 @@ description: "Task list template for feature implementation"
 
 **Purpose**: Project initialization and basic structure
 
-- [ ] T001 Create Django project structure with 'hr_assistant' project
-- [ ] T002 [P] Install Django, markdown and bleach dependencies
-- [ ] T003 Create 'jobs' Django application
-- [ ] T004 Configure project settings to include 'jobs' app
+- [x] T001 Create Django project structure with 'hr_assistant' project
+- [x] T002 [P] Install Django, markdown and bleach dependencies
+- [x] T003 Create 'jobs' Django application
+- [x] T004 Configure project settings to include 'jobs' app
 - [ ] T005 [P] Install and configure Tailwind CSS for the project
 
 ---
@@ -45,18 +45,18 @@ description: "Task list template for feature implementation"
 
 Examples of foundational tasks (adjust based on your project):
 
-- [ ] T006 Setup JobListing model with required fields in jobs/models.py
-- [ ] T006a Add field validation to JobListing model: title max 200 chars in jobs/models.py (depends on T006)
-- [ ] T006b Add field validation to JobListing model: detailed_description max 50000 chars in jobs/models.py (depends on T006)
-- [ ] T006c Add field validation to JobListing model: required_skills max 100 items in jobs/models.py (depends on T006)
-- [ ] T007 [P] Implement single active job listing validation in jobs/models.py
-- [ ] T007a [P] Implement single active job listing constraint: deactivate other listings when one is activated in jobs/models.py (depends on T006)
-- [ ] T007b [P] Implement auto-activation of first created job listing in jobs/models.py (depends on T006)
-- [ ] T008 [P] Configure markdown sanitization using markdown and bleach libraries for detailed_description field in jobs/models.py
-- [ ] T009 Create base templates directory structure in jobs/templates/
-- [ ] T010 Create base static files directory structure in jobs/static/
-- [ ] T011 Configure URL routing framework and include jobs URLs in main urls.py
-- [ ] T003a Configure project to operate without authentication as proof-of-concept in settings.py
+- [x] T006 Setup JobListing model with required fields in jobs/models.py
+- [x] T006a Add field validation to JobListing model: title max 200 chars in jobs/models.py (depends on T006)
+- [x] T006b Add field validation to JobListing model: detailed_description max 50000 chars in jobs/models.py (depends on T006)
+- [x] T006c Add field validation to JobListing model: required_skills max 100 items in jobs/models.py (depends on T006)
+- [x] T007 [P] Implement single active job listing validation in jobs/models.py
+- [x] T007a [P] Implement single active job listing constraint: deactivate other listings when one is activated in jobs/models.py (depends on T006)
+- [x] T007b [P] Implement auto-activation of first created job listing in jobs/models.py (depends on T006)
+- [x] T008 [P] Configure markdown sanitization using markdown and bleach libraries for detailed_description field in jobs/models.py
+- [x] T009 Create base templates directory structure in jobs/templates/
+- [x] T010 Create base static files directory structure in jobs/static/
+- [x] T011 Configure URL routing framework and include jobs URLs in main urls.py
+- [x] T003a Configure project to operate without authentication as proof-of-concept in settings.py
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
 
@@ -70,19 +70,19 @@ Examples of foundational tasks (adjust based on your project):
 
 ### Tests for User Story 1 (OPTIONAL - only if tests requested) ⚠️
 
-- [ ] T012 [P] [US1] Unit test for JobListing model creation validation in tests/jobs/test_models.py
-- [ ] T013 [P] [US1] Unit test for create view functionality in tests/jobs/test_views.py
+- [x] T012 [P] [US1] Unit test for JobListing model creation validation in tests/jobs/test_models.py
+- [x] T013 [P] [US1] Unit test for create view functionality in tests/jobs/test_views.py
 
 ### Implementation for User Story 1
 
-- [ ] T014 [P] [US1] Create JobListing model with all required fields in jobs/models.py (depends on T006, T007, T008)
-- [ ] T015 [US1] Create JobListingForm with validation in jobs/forms.py
-- [ ] T016 [US1] Implement JobListingCreateView in jobs/views.py
-- [ ] T017 [US1] Create joblisting_form.html template with Tailwind CSS in jobs/templates/jobs/
-- [ ] T018 [US1] Add create URL route to jobs/urls.py
-- [ ] T019 [US1] Add markdown rendering helper function in jobs/utils.py
-- [ ] T020 [US1] Integrate markdown rendering and sanitization in the create view
-- [ ] T020a [US1] Implement markdown to HTML conversion with sanitization function in jobs/utils.py
+- [x] T014 [P] [US1] Create JobListing model with all required fields in jobs/models.py (depends on T006, T007, T008)
+- [x] T015 [US1] Create JobListingForm with validation in jobs/forms.py
+- [x] T016 [US1] Implement JobListingCreateView in jobs/views.py
+- [x] T017 [US1] Create joblisting_form.html template with Tailwind CSS in jobs/templates/jobs/
+- [x] T018 [US1] Add create URL route to jobs/urls.py
+- [x] T019 [US1] Add markdown rendering helper function in jobs/utils.py
+- [x] T020 [US1] Integrate markdown rendering and sanitization in the create view
+- [x] T020a [US1] Implement markdown to HTML conversion with sanitization function in jobs/utils.py
 
 **Checkpoint**: At this point, User Story 1 should be fully functional and testable independently
 
@@ -96,17 +96,17 @@ Examples of foundational tasks (adjust based on your project):
 
 ### Tests for User Story 2 (OPTIONAL - only if tests requested) ⚠️
 
-- [ ] T021 [P] [US2] Unit test for detail view functionality in tests/jobs/test_views.py
-- [ ] T022 [P] [US2] Unit test for job listing retrieval in tests/jobs/test_models.py
+- [x] T021 [P] [US2] Unit test for detail view functionality in tests/jobs/test_views.py
+- [x] T022 [P] [US2] Unit test for job listing retrieval in tests/jobs/test_models.py
 
 ### Implementation for User Story 2
 
-- [ ] T023 [P] [US2] Implement JobListingDetailView in jobs/views.py
-- [ ] T024 [US2] Implement JobListingListView in jobs/views.py
-- [ ] T025 [US2] Create joblisting_detail.html template with Tailwind CSS in jobs/templates/jobs/
-- [ ] T026 [US2] Create joblisting_list.html template with Tailwind CSS in jobs/templates/jobs/
-- [ ] T027 [US2] Add detail and list URL routes to jobs/urls.py
-- [ ] T028 [US2] Integrate markdown rendering in the detail view
+- [x] T023 [P] [US2] Implement JobListingDetailView in jobs/views.py
+- [x] T024 [US2] Implement JobListingListView in jobs/views.py
+- [x] T025 [US2] Create joblisting_detail.html template with Tailwind CSS in jobs/templates/jobs/
+- [x] T026 [US2] Create joblisting_list.html template with Tailwind CSS in jobs/templates/jobs/
+- [x] T027 [US2] Add detail and list URL routes to jobs/urls.py
+- [x] T028 [US2] Integrate markdown rendering in the detail view
 
 **Checkpoint**: At this point, User Stories 1 AND 2 should both work independently
 
@@ -120,18 +120,18 @@ Examples of foundational tasks (adjust based on your project):
 
 ### Tests for User Story 3 (OPTIONAL - only if tests requested) ⚠️
 
-- [ ] T029 [P] [US3] Unit test for update view functionality in tests/jobs/test_views.py
-- [ ] T030 [P] [US3] Unit test for job listing update validation in tests/jobs/test_models.py
+- [x] T029 [P] [US3] Unit test for update view functionality in tests/jobs/test_views.py
+- [x] T030 [P] [US3] Unit test for job listing update validation in tests/jobs/test_models.py
 
 ### Implementation for User Story 3
 
-- [ ] T031 [P] [US3] Implement JobListingUpdateView in jobs/views.py
-- [ ] T032 [US3] Implement JobListingDeleteView in jobs/views.py
-- [ ] T033 [US3] Update joblisting_form.html template to support both create and update operations
-- [ ] T034 [US3] Add update and delete URL routes to jobs/urls.py
-- [ ] T035 [US3] Implement mechanism to prevent concurrent editing - ensure only one user can edit a job listing at a time using optimistic locking in jobs/views.py
-- [ ] T036 [US3] Add activate endpoint to set job listing as active in jobs/views.py
-- [ ] T037 [US3] Add activate URL route to jobs/urls.py
+- [x] T031 [P] [US3] Implement JobListingUpdateView in jobs/views.py
+- [x] T032 [US3] Implement JobListingDeleteView in jobs/views.py
+- [x] T033 [US3] Update joblisting_form.html template to support both create and update operations
+- [x] T034 [US3] Add update and delete URL routes to jobs/urls.py
+- [x] T035 [US3] Implement mechanism to prevent concurrent editing - ensure only one user can edit a job listing at a time using optimistic locking in jobs/views.py
+- [x] T036 [US3] Add activate endpoint to set job listing as active in jobs/views.py
+- [x] T037 [US3] Add activate URL route to jobs/urls.py
 
 **Checkpoint**: All user stories should now be independently functional
 
