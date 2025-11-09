@@ -5,6 +5,16 @@
 **Status**: Draft
 **Input**: User description: "Resume Ingestion Feature - We have an \"AI HR Assistant\" application. The primary user role is the Hiring Manager. The specification MUST be organized into clear User Stories, and the AI agent MUST generate detailed, comprehensive Acceptance Criteria (ACs) for every single story. User Story: As a Hiring Manager, I want to securely upload multiple applicant resumes in bulk so I can process a large pool of candidates efficiently. Requirements: The upload interface MUST support drag-and-drop and accept common formats: PDF and DOCX. The system MUST provide immediate visual feedback (e.g., file names, successful upload status) after ingestion. The system MUST check for duplicates based on applicant name and file content hash and alert the user if duplicates are found."
 
+## Clarifications
+
+### Session 2025-11-09
+
+- Q: For the resume upload feature, what level of data protection and privacy compliance requirements must be met for the applicant information? → A: Standard data protection with GDPR compliance measures
+- Q: What are the expected maximum file sizes and total batch sizes that should be supported for resume uploads? → A: Individual files up to 10MB, batches up to 100 files
+- Q: What is the expected maximum processing time for a complete batch of resume uploads? → A: Under 10 minutes for a full batch
+- Q: When the system detects potential duplicate resumes, what specific actions should be available to the user? → A: Allow skip, replace, or keep both options
+- Q: To what extent should the system parse and extract information from uploaded resumes? → A: Only basic file metadata (name, size, format)
+
 ## User Scenarios & Testing *(mandatory)*
 
 <!--
@@ -95,11 +105,15 @@ As a Hiring Manager, I want the system to check for duplicate resumes based on a
 - **FR-008**: System MUST securely handle uploaded files to protect applicant privacy and comply with data protection requirements.
 - **FR-009**: System MUST handle upload failures gracefully and provide meaningful error messages to users.
 - **FR-010**: System MUST maintain upload status information for each file individually in the batch.
+- **FR-011**: System MUST implement GDPR compliance measures for handling applicant personal data, including data access, modification and deletion rights.
+- **FR-012**: System MUST support individual resume files up to 10MB and batch uploads of up to 100 files.
+- **FR-013**: System MUST provide options to skip, replace, or keep both when duplicate resumes are detected.
+- **FR-014**: System MUST extract only basic file metadata (name, size, format) from uploaded resumes without detailed content parsing.
 
 ### Key Entities *(include if feature involves data)*
 
-- **Resume File**: Represents an uploaded resume document with metadata including file format (PDF/DOCX), content hash, upload status, file name, and extracted applicant information.
-- **Applicant Profile**: Represents the candidate information extracted from a resume file, including name and other identifying details used for duplicate detection.
+- **Resume File**: Represents an uploaded resume document with metadata including file format (PDF/DOCX), content hash, upload status, file name, and basic file metadata (size, format) without detailed content parsing.
+- **Applicant Profile**: Represents the candidate information that can be used for duplicate detection, with name potentially extracted from file metadata or filename.
 - **Upload Session**: Represents a bulk upload operation containing multiple resume files, status information for each file, and user interaction data.
 
 ## Success Criteria *(mandatory)*
@@ -115,3 +129,4 @@ As a Hiring Manager, I want the system to check for duplicate resumes based on a
 - **SC-002**: System detects 95% of duplicate resumes based on content hash or applicant name without false positives.
 - **SC-003**: 90% of users successfully complete the resume upload process on their first attempt.
 - **SC-004**: Upload success rate is greater than 98% for files under 10MB in PDF or DOCX format.
+- **SC-005**: System processes a full batch of up to 100 resume files within 10 minutes.
