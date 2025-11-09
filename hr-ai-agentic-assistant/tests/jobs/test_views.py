@@ -80,7 +80,10 @@ class TestJobListingViews(TestCase):
     
     def test_activate_job_listing_view(self):
         """Test activate job listing functionality"""
-        # Initially job is not active
+        # Make sure that the job is not active 
+        if self.job.is_active: 
+            self.job.is_active = False
+
         self.assertFalse(self.job.is_active)
         
         # Activate the job

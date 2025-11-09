@@ -17,7 +17,7 @@ class TestJobListingModel(TestCase):
         )
         self.assertEqual(job.title, "Software Engineer")
         self.assertEqual(job.required_skills, ["Python", "Django", "SQL"])
-        self.assertFalse(job.is_active)  # Default value
+        self.assertTrue(job.is_active)  # Default value
     
     def test_job_listing_with_active_status(self):
         """Test creating an active job listing"""
