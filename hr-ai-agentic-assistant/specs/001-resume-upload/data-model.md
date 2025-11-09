@@ -11,10 +11,9 @@ Represents an applicant with their resume data and metadata.
 | Field Name | Type | Constraints | Description |
 |------------|------|-------------|-------------|
 | id | AutoField (Primary Key) | NOT NULL | Unique identifier for the applicant record |
-| applicant_name | CharField(255) | NOT NULL | Name of the applicant extracted from the resume |
+| applicant_name | CharField(255) | NOT NULL | Name of the applicant extracted from the resume filename |
 | resume_file | FileField | NOT NULL | Reference to the uploaded resume file (PDF/DOCX) |
 | content_hash | CharField(64) | NOT NULL, UNIQUE | SHA256 hash of the file content for duplicate detection |
-| raw_text_content | TextField | NULL | Raw text content extracted from the resume (for future AI processing) |
 | file_size | PositiveIntegerField | NOT NULL | Size of the uploaded file in bytes |
 | file_format | CharField(10) | NOT NULL | File format (PDF, DOCX) |
 | upload_date | DateTimeField | NOT NULL, auto_now_add=True | Timestamp of when the resume was uploaded |
@@ -27,7 +26,7 @@ Represents an applicant with their resume data and metadata.
 2. **File Size Validation**: `file_size` must be between 1KB and 10MB (10485760 bytes)
 3. **Content Hash Uniqueness**: `content_hash` must be unique across all Applicant records
 4. **Required Fields**: `applicant_name`, `resume_file`, `content_hash` must not be null
-5. **Name Format**: `applicant_name` should match standard name patterns
+5. **Name Format**: `applicant_name` should match standard name patterns extracted from the filename using pattern recognition (e.g., "FirstName_LastName_Resume.pdf")
 
 ### State Transitions
 

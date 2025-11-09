@@ -14,6 +14,7 @@
 - Q: What is the expected maximum processing time for a complete batch of resume uploads? → A: Under 10 minutes for a full batch
 - Q: When the system detects potential duplicate resumes, what specific actions should be available to the user? → A: Allow skip, replace, or keep both options
 - Q: To what extent should the system parse and extract information from uploaded resumes? → A: Only basic file metadata (name, size, format)
+- Q: How is the applicant name extracted from resumes for duplicate detection? → A: Applicant name is extracted from the resume filename using pattern recognition (e.g., "FirstName_LastName_Resume.pdf")
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -102,10 +103,10 @@ As a Hiring Manager, I want the system to check for duplicate resumes based on a
 - **FR-005**: System MUST compare applicant names from uploaded resumes to detect potential duplicates.
 - **FR-006**: System MUST alert users when duplicate resumes are detected based on file content hash or applicant name.
 - **FR-007**: System MUST allow users to process multiple resume uploads in a single session to handle bulk processing needs.
-- **FR-008**: System MUST securely handle uploaded files to protect applicant privacy and comply with data protection requirements.
+- **FR-008**: System MUST securely handle uploaded files to protect applicant privacy and comply with data protection requirements. Security measures include: 1) file content validation beyond extension checking, 2) storing files in a secure location outside the web root, 3) implementing access controls to restrict file access to authorized users only, 4) sanitizing file content where appropriate.
 - **FR-009**: System MUST handle upload failures gracefully and provide meaningful error messages to users.
 - **FR-010**: System MUST maintain upload status information for each file individually in the batch.
-- **FR-011**: System MUST implement GDPR compliance measures for handling applicant personal data, including data access, modification and deletion rights.
+- **FR-011**: System MUST implement GDPR compliance measures for handling applicant personal data. The system MUST provide: 1) Right to access - users can request and receive a copy of their personal data, 2) Right to modification - users can request corrections to their personal data, 3) Right to deletion - users can request removal of their personal data, 4) Data retention policies that automatically delete data after specified periods.
 - **FR-012**: System MUST support individual resume files up to 10MB and batch uploads of up to 100 files.
 - **FR-013**: System MUST provide options to skip, replace, or keep both when duplicate resumes are detected.
 - **FR-014**: System MUST extract only basic file metadata (name, size, format) from uploaded resumes without detailed content parsing.
