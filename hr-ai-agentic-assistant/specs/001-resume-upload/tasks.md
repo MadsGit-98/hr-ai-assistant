@@ -27,9 +27,9 @@
 
 ## Phase 1: Foundational Components
 
-- [ ] T001 Configure Django media settings for file storage (max 10MB limit)
-- [ ] T002 Implement file validation utilities for PDF/DOCX format checking in jobs/utils.py
-- [ ] T003 Create base directory structure: jobs/templates, jobs/static/css if not present
+- [X] T001 Configure Django media settings for file storage (max 10MB limit)
+- [X] T002 Implement file validation utilities for PDF/DOCX format checking in jobs/utils.py
+- [X] T003 Create base directory structure: jobs/templates, jobs/static/css if not present
 
 ## Phase 2: User Story 1 - Bulk Resume Upload (P1)
 
@@ -39,16 +39,16 @@
 
 ### Implementation Tasks
 
-- [ ] T004 [P] [US1] Create Applicant model with required fields per data-model.md in jobs/models.py
-- [ ] T005 [P] [US1] Implement Applicant model validation rules per data-model.md in jobs/models.py
-- [ ] T006 [P] [US1] Create database migration for Applicant model (makemigrations)
-- [ ] T007 [P] [US1] Implement calculate_file_hash utility function in jobs/utils.py using hashlib
-- [ ] T008 [US1] Create ApplicantUploadView in jobs/views.py to handle multi-file POST requests
-- [ ] T009 [US1] Implement file type validation (PDF/DOCX) in upload view
-- [ ] T010 [US1] Implement file size validation (max 10MB) in upload view
-- [ ] T011 [US1] Configure upload endpoint in jobs/urls.py
-- [ ] T012 [US1] Test file upload functionality with valid PDF and DOCX files
-- [ ] T013 [US1] Test rejection of invalid file formats
+- [X] T004 [P] [US1] Create Applicant model with required fields per data-model.md in jobs/models.py
+- [X] T005 [P] [US1] Implement Applicant model validation rules per data-model.md in jobs/models.py
+- [X] T006 [P] [US1] Create database migration for Applicant model (makemigrations)
+- [X] T007 [P] [US1] Implement calculate_file_hash utility function in jobs/utils.py using hashlib
+- [X] T008 [US1] Create ApplicantUploadView in jobs/views.py to handle multi-file POST requests
+- [X] T009 [US1] Implement file type validation (PDF/DOCX) in upload view
+- [X] T010 [US1] Implement file size validation (max 10MB) in upload view
+- [X] T011 [US1] Configure upload endpoint in jobs/urls.py
+- [X] T012 [US1] Test file upload functionality with valid PDF and DOCX files
+- [X] T013 [US1] Test rejection of invalid file formats
 
 ## Phase 3: User Story 2 - Visual Feedback During Upload (P1)
 
@@ -58,15 +58,15 @@
 
 ### Implementation Tasks
 
-- [ ] T014 [P] [US2] Create upload.html template with drag-and-drop interface in jobs/templates/
-- [ ] T015 [P] [US2] Implement JavaScript for drag-and-drop file handling
-- [ ] T016 [US2] Add visual feedback for file queue display
-- [ ] T017 [US2] Implement JavaScript for AJAX file uploads using fetch API
-- [ ] T018 [US2] Add progress indicators for individual files during upload
-- [ ] T019 [US2] Display success/error status for each uploaded file
-- [ ] T020 [US2] Style the upload interface with Tailwind CSS for responsive design
-- [ ] T021 [US2] Test visual feedback during successful file uploads
-- [ ] T022 [US2] Test visual feedback for failed file uploads
+- [X] T014 [P] [US2] Create upload.html template with drag-and-drop interface in jobs/templates/
+- [X] T015 [P] [US2] Implement JavaScript for drag-and-drop file handling
+- [X] T016 [US2] Add visual feedback for file queue display
+- [X] T017 [US2] Implement JavaScript for AJAX file uploads using fetch API
+- [X] T018 [US2] Add progress indicators for individual files during upload
+- [X] T019 [US2] Display success/error status for each uploaded file
+- [X] T020 [US2] Style the upload interface with Tailwind CSS for responsive design
+- [X] T021 [US2] Test visual feedback during successful file uploads
+- [X] T022 [US2] Test visual feedback for failed file uploads
 
 ## Phase 4: User Story 3 - Duplicate Detection and Alert (P2)
 
@@ -76,30 +76,30 @@
 
 ### Implementation Tasks
 
-- [ ] T023 [P] [US3] Implement check_duplicate_content utility in jobs/utils.py
-- [ ] T024 [P] [US3] Implement check_duplicate_name utility in jobs/utils.py
-- [ ] T025 [US3] Integrate duplicate detection in upload view before saving
-- [ ] T026 [US3] Modify upload response to include duplicate status information
-- [ ] T027 [US3] Update frontend to display duplicate alerts
-- [ ] T028 [US3] Implement logic to handle duplicate detection options (skip, replace, keep both)
-- [ ] T029 [US3] Test duplicate detection based on content hash
-- [ ] T030 [US3] Test duplicate detection based on applicant name
-- [ ] T031 [US3] Test duplicate handling options (skip, replace, keep both)
+- [X] T023 [P] [US3] Implement check_duplicate_content utility in jobs/utils.py
+- [X] T024 [P] [US3] Implement check_duplicate_name utility in jobs/utils.py
+- [X] T025 [US3] Integrate duplicate detection in upload view before saving
+- [X] T026 [US3] Modify upload response to include duplicate status information
+- [X] T027 [US3] Update frontend to display duplicate alerts
+- [X] T028 [US3] Implement logic to handle duplicate detection options (skip, replace, keep both)
+- [X] T029 [US3] Test duplicate detection based on content hash
+- [X] T030 [US3] Test duplicate detection based on applicant name
+- [X] T031 [US3] Test duplicate handling options (skip, replace, keep both)
 
 ## Phase 6: Polish & Cross-Cutting Concerns
 
-- [ ] T039 Implement GDPR compliance features for applicant data management
-- [ ] T040 Add database indexes to Applicant model per data-model.md
-- [ ] T041 Create comprehensive unit tests for all models (target 90% coverage)
-- [ ] T042 Create comprehensive unit tests for all views (target 90% coverage)
-- [ ] T043 Create comprehensive unit tests for all utilities (target 90% coverage)
-- [ ] T044 Create Selenium tests for critical user journeys (US1, US2, US3)
-- [ ] T045 Implement proper error handling and user-friendly error messages
-- [ ] T046 Add logging for file upload operations and duplicate detection
-- [ ] T047 Implement secure file storage location with restricted access
-- [ ] T048 Create documentation for the API endpoints based on OpenAPI contract
-- [ ] T049 Run final test suite and ensure 90%+ coverage across all components
-- [ ] T050 Perform final integration testing of all user stories together
-- [ ] T051 Create performance test to validate processing 50 files within 5 minutes
-- [ ] T052 Create test to validate 95% duplicate detection accuracy rate
-- [ ] T053 Implement load testing for maximum file size (10MB) and batch limits (100 files)
+- [X] T039 Implement GDPR compliance features for applicant data management
+- [X] T040 Add database indexes to Applicant model per data-model.md
+- [X] T041 Create comprehensive unit tests for all models (target 90% coverage)
+- [X] T042 Create comprehensive unit tests for all views (target 90% coverage)
+- [X] T043 Create comprehensive unit tests for all utilities (target 90% coverage)
+- [X] T044 Create Selenium tests for critical user journeys (US1, US2, US3)
+- [X] T045 Implement proper error handling and user-friendly error messages
+- [X] T046 Add logging for file upload operations and duplicate detection
+- [X] T047 Implement secure file storage location with restricted access
+- [X] T048 Create documentation for the API endpoints based on OpenAPI contract
+- [X] T049 Run final test suite and ensure 90%+ coverage across all components
+- [X] T050 Perform final integration testing of all user stories together
+- [X] T051 Create performance test to validate processing 50 files within 5 minutes
+- [X] T052 Create test to validate 95% duplicate detection accuracy rate
+- [X] T053 Implement load testing for maximum file size (10MB) and batch limits (100 files)
