@@ -82,22 +82,21 @@ function updateFileList() {
         const fileItem = document.createElement('div');
         fileItem.className = 'flex items-center justify-between p-3 bg-gray-50 rounded border';
         
-        fileItem.innerHTML = `
-            <div class="flex items-center">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-500 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clip-rule="evenodd" />
-                </svg>
-                <div>
-                    <div class="font-medium text-sm truncate max-w-xs">\${file.name}</div>
-                    <div class="text-xs text-gray-500">\${formatFileSize(file.size)}</div>
-                </div>
-            </div>
-            <button type="button" data-index="\${index}" class="remove-file text-red-600 hover:text-red-800">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
-                </svg>
-            </button>
-        `;
+        fileItem.innerHTML = 
+            '<div class="flex items-center">' +
+            '    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-500 mr-2" viewBox="0 0 20 20" fill="currentColor">' +
+            '        <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clip-rule="evenodd" />' +
+            '    </svg>' +
+            '    <div>' +
+            '        <div class="font-medium text-sm truncate max-w-xs">' + file.name + '</div>' +
+            '        <div class="text-xs text-gray-500">' + formatFileSize(file.size) + '</div>' +
+            '    </div>' +
+            '</div>' +
+            '<button type="button" data-index="' + index + '" class="remove-file text-red-600 hover:text-red-800">' +
+            '    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">' +
+            '        <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />' +
+            '    </svg>' +
+            '</button>';
         
         fileList.appendChild(fileItem);
     });
@@ -112,7 +111,7 @@ function updateFileList() {
     });
     
     // Update file count
-    fileCount.textContent = `Selected: \${selectedFiles.length} file(s)`;
+    fileCount.textContent = 'Selected: ' + selectedFiles.length + ' file(s)';
 }
 
 // Clear all files
@@ -149,28 +148,27 @@ function uploadFiles() {
     // Create progress items for each file
     const fileProgress = {};
     selectedFiles.forEach((file, index) => {
-        const progressId = \`progress-\${index}\`;
+        const progressId = 'progress-' + index;
         fileProgress[file.name] = progressId;
         
         const progressItem = document.createElement('div');
         progressItem.id = progressId;
         progressItem.className = 'p-3 bg-gray-50 rounded border';
-        progressItem.innerHTML = \`
-            <div class="flex justify-between mb-1">
-                <span class="text-sm font-medium">\${file.name}</span>
-                <span class="text-sm" id="status-\${index}">Uploading...</span>
-            </div>
-            <div class="w-full bg-gray-200 rounded-full h-2">
-                <div class="bg-blue-600 h-2 rounded-full" id="progress-bar-\${index}" style="width: 0%"></div>
-            </div>
-            <div id="message-\${index}" class="mt-2 text-sm text-gray-600"></div>
-        `;
+        progressItem.innerHTML = 
+            '<div class="flex justify-between mb-1">' +
+            '    <span class="text-sm font-medium">' + file.name + '</span>' +
+            '    <span class="text-sm" id="status-' + index + '">Uploading...</span>' +
+            '</div>' +
+            '<div class="w-full bg-gray-200 rounded-full h-2">' +
+            '    <div class="bg-blue-600 h-2 rounded-full" id="progress-bar-' + index + '" style="width: 0%"></div>' +
+            '</div>' +
+            '<div id="message-' + index + '" class="mt-2 text-sm text-gray-600"></div>';
         
         progressContainer.appendChild(progressItem);
     });
     
     // Perform upload with fetch
-    fetch('{% url "applicant_upload" %}', {
+    fetch(uploadUrl, {
         method: 'POST',
         body: formData,
         headers: {
@@ -181,9 +179,9 @@ function uploadFiles() {
     .then(data => {
         if (data.success) {
             data.results.forEach((result, index) => {
-                const statusSpan = document.getElementById(\`status-\${index}\`);
-                const progressBar = document.getElementById(\`progress-bar-\${index}\`);
-                const messageDiv = document.getElementById(\`message-\${index}\`);
+                const statusSpan = document.getElementById('status-' + index);
+                const progressBar = document.getElementById('progress-bar-' + index);
+                const messageDiv = document.getElementById('message-' + index);
                 
                 // Update status and progress bar based on result
                 if (result.status === 'success') {
@@ -201,7 +199,7 @@ function uploadFiles() {
                     let message = result.message || 'Duplicate detected';
                     if (result.duplicates && result.duplicates.length > 0) {
                         result.duplicates.forEach(dup => {
-                            message += \`<br><span class="text-yellow-700">• \${dup.message}</span>\`;
+                            message += '<br><span class="text-yellow-700">• ' + dup.message + '</span>';
                         });
                     }
                     messageDiv.innerHTML = message;
@@ -217,9 +215,9 @@ function uploadFiles() {
         } else {
             // Handle overall failure
             data.results.forEach((result, index) => {
-                const statusSpan = document.getElementById(\`status-\${index}\`);
-                const progressBar = document.getElementById(\`progress-bar-\${index}\`);
-                const messageDiv = document.getElementById(\`message-\${index}\`);
+                const statusSpan = document.getElementById('status-' + index);
+                const progressBar = document.getElementById('progress-bar-' + index);
+                const messageDiv = document.getElementById('message-' + index);
                 
                 statusSpan.textContent = '✗ Failed';
                 statusSpan.className = 'text-sm text-red-600';
@@ -237,9 +235,9 @@ function uploadFiles() {
         
         // Update all progress items to show error
         selectedFiles.forEach((file, index) => {
-            const statusSpan = document.getElementById(\`status-\${index}\`);
-            const progressBar = document.getElementById(\`progress-bar-\${index}\`);
-            const messageDiv = document.getElementById(\`message-\${index}\`);
+            const statusSpan = document.getElementById('status-' + index);
+            const progressBar = document.getElementById('progress-bar-' + index);
+            const messageDiv = document.getElementById('message-' + index);
             
             statusSpan.textContent = '✗ Error';
             statusSpan.className = 'text-sm text-red-600';

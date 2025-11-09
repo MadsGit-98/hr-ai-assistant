@@ -53,6 +53,10 @@
     </div>
 
     {% load static %}
+    <script>
+        // Define the upload URL as a global variable for the external script to use
+        const uploadUrl = "{% url 'applicant_upload' %}";
+    </script>
     <script src="{% static 'js/upload.js' %}"></script>
 </body>
 </html>
