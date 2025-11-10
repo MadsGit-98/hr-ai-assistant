@@ -96,6 +96,14 @@ class Applicant(models.Model):
     """
     Represents an applicant with their resume data and metadata.
     """
+    job_listing = models.ForeignKey(
+        JobListing,
+        on_delete=models.CASCADE,
+        related_name='applicants',
+        help_text="The job listing this applicant has applied for",
+        null=True,  # Temporarily allow null for existing records
+        blank=True  # Allow blank in forms
+    )
     applicant_name = models.CharField(
         max_length=255,
         help_text="Name of the applicant extracted from the resume filename"
@@ -144,6 +152,7 @@ class Applicant(models.Model):
         2. File Size Validation: file_size must be between 1KB and 10MB (10485760 bytes)
         3. Required Fields: applicant_name, resume_file, content_hash must not be null
         4. Name Format: applicant_name should match standard name patterns extracted from the filename using pattern recognition (e.g., "FirstName_LastName_Resume.pdf")
+        5. Job Listing Validation: job_listing must be active
         """
         # 1. File Format Validation: file_format must be either 'PDF' or 'DOCX'
         if self.file_format.upper() not in ['PDF', 'DOCX']:
@@ -166,6 +175,10 @@ class Applicant(models.Model):
         name_pattern = r'^[A-Za-z\s\'-]+$'  # Allow letters, spaces, apostrophes, and hyphens
         if not re.match(name_pattern, self.applicant_name):
             raise ValidationError({'applicant_name': 'Applicant name contains invalid characters'})
+
+        # 5. Job Listing Validation: if job_listing is provided, it must be active
+        if self.job_listing and not self.job_listing.is_active:
+            raise ValidationError({'job_listing': 'Cannot add applicant to an inactive job listing'})
 
     def __str__(self):
         return f"{self.applicant_name} - {self.resume_file.name}"

@@ -1,6 +1,6 @@
 from django.test import TestCase
 from django.core.exceptions import ValidationError
-from jobs.models import Applicant
+from jobs.models import Applicant, JobListing
 import tempfile
 import os
 
@@ -11,10 +11,21 @@ class ResumeApplicantModelTest(TestCase):
         self.temp_file = tempfile.NamedTemporaryFile(delete=False, suffix='.pdf')
         self.temp_file.write(b'test content')
         self.temp_file.close()
+        
+        # Create a job listing for testing
+        self.job = JobListing.objects.create(
+            title="Test Job",
+            detailed_description="Test job description",
+            required_skills=["Python"],
+            is_active=True
+        )
 
     def tearDown(self):
         # Clean up the temporary file
         os.unlink(self.temp_file.name)
+        # Delete the job listing
+        if hasattr(self, 'job'):
+            self.job.delete()
 
     def test_resume_applicant_creation(self):
         """Test creating a resume applicant with valid data"""

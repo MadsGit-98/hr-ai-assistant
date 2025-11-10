@@ -1,7 +1,7 @@
 from django.test import TestCase, Client
 from django.urls import reverse
 from django.core.files.uploadedfile import SimpleUploadedFile
-from jobs.models import Applicant
+from jobs.models import Applicant, JobListing
 import tempfile
 import os
 import json
@@ -11,6 +11,14 @@ class ResumeApplicantUploadViewTest(TestCase):
     def setUp(self):
         self.client = Client()
         self.upload_url = reverse('applicant_upload')
+        
+        # Create an active job listing for the tests to work with the new requirements
+        self.job_listing = JobListing.objects.create(
+            title="Test Job",
+            detailed_description="Test job description for resume uploads",
+            required_skills=["Python", "Testing"],
+            is_active=True
+        )
 
     def test_get_resume_upload_page(self):
         """Test that the resume upload page loads correctly"""

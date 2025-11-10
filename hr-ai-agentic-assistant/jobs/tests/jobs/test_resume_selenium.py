@@ -4,17 +4,40 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
+from jobs.models import JobListing
 import tempfile
 import os
 
 
 class ResumeUploadSeleniumTest(StaticLiveServerTestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        # Create an active job listing for the tests to work with the new requirements
+        cls.job_listing = JobListing.objects.create(
+            title="Test Job",
+            detailed_description="Test job description for selenium tests",
+            required_skills=["Python", "Testing"],
+            is_active=True
+        )
+
     def setUp(self):
+        super().setUp()
         # Set up the Selenium WebDriver (make sure you have ChromeDriver installed)
         options = webdriver.ChromeOptions()
         options.add_argument('--headless')  # Run in headless mode for testing
         self.driver = webdriver.Chrome(options=options)
         self.driver.implicitly_wait(10)
+
+    def tearDown(self):
+        self.driver.quit()
+        
+    @classmethod
+    def tearDownClass(cls):
+        # Clean up the job listing
+        if hasattr(cls, 'job_listing'):
+            cls.job_listing.delete()
+        super().tearDownClass()
 
     def tearDown(self):
         self.driver.quit()

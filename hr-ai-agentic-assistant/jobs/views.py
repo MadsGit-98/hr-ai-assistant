@@ -53,6 +53,14 @@ class JobListingListView(ListView):
     template_name = 'jobs/joblisting_list.html'
     context_object_name = 'job_listings'
 
+    def get_context_data(self, **kwargs):
+        """
+        Add has_active_listing to context to conditionally show upload button
+        """
+        context = super().get_context_data(**kwargs)
+        context['has_active_listing'] = JobListing.objects.filter(is_active=True).exists()
+        return context
+
 
 class JobListingUpdateView(UpdateView):
     """
@@ -135,6 +143,12 @@ class ApplicantUploadView(View):
         """
         Display the upload form with drag-and-drop interface
         """
+        # Check if there's an active job listing
+        active_job_listing = JobListing.objects.filter(is_active=True).first()
+        if not active_job_listing:
+            messages.error(request, 'No active job listing found. Please activate a job listing before uploading resumes.')
+            return redirect('joblisting_list')
+        
         return render(request, 'jobs/upload.html')
     
     def post(self, request):
@@ -144,8 +158,16 @@ class ApplicantUploadView(View):
         uploaded_files = request.FILES.getlist('resume_files')
         results = []
         
+        # Ensure there's an active job listing before processing uploads
+        active_job_listing = JobListing.objects.filter(is_active=True).first()
+        if not active_job_listing:
+            return JsonResponse({
+                'success': False,
+                'error': 'No active job listing found. Please activate a job listing before uploading resumes.'
+            })
+        
         for uploaded_file in uploaded_files:
-            result = self.process_single_file(uploaded_file)
+            result = self.process_single_file(uploaded_file, active_job_listing)
             results.append(result)
         
         # Return JSON response for AJAX processing
@@ -154,7 +176,7 @@ class ApplicantUploadView(View):
             'results': results
         })
     
-    def process_single_file(self, uploaded_file):
+    def process_single_file(self, uploaded_file, job_listing):
         """
         Process a single uploaded file with validation and duplicate detection
         """
@@ -211,8 +233,9 @@ class ApplicantUploadView(View):
         
         # If no duplicates, save the file
         try:
-            # Create applicant record
+            # Create applicant record linked to the active job listing
             applicant = Applicant(
+                job_listing=job_listing,
                 applicant_name=applicant_name,
                 resume_file=uploaded_file,
                 content_hash=content_hash,
