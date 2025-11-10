@@ -1,10 +1,13 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.views.generic import CreateView, DetailView, UpdateView, DeleteView, ListView
+from django.views import View
 from django.urls import reverse_lazy
 from django.contrib import messages
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.db import transaction
-from .models import JobListing
+from django.conf import settings
+import os
+from .models import JobListing, Applicant
 from .forms import JobListingForm
 from . import utils
 
@@ -121,3 +124,108 @@ def activate_job_listing(request, pk):
     job_listing.save()
     messages.success(request, f'"{job_listing.title}" is now the active job listing!')
     return redirect('joblisting_list')
+
+
+class ApplicantUploadView(View):
+    """
+    View to handle multi-file resume uploads with validation and duplicate detection
+    """
+    
+    def get(self, request):
+        """
+        Display the upload form with drag-and-drop interface
+        """
+        return render(request, 'jobs/upload.html')
+    
+    def post(self, request):
+        """
+        Handle file uploads with validation and duplicate detection
+        """
+        uploaded_files = request.FILES.getlist('resume_files')
+        results = []
+        
+        for uploaded_file in uploaded_files:
+            result = self.process_single_file(uploaded_file)
+            results.append(result)
+        
+        # Return JSON response for AJAX processing
+        return JsonResponse({
+            'success': True,
+            'results': results
+        })
+    
+    def process_single_file(self, uploaded_file):
+        """
+        Process a single uploaded file with validation and duplicate detection
+        """
+        result = {
+            'filename': uploaded_file.name,
+            'status': 'error',
+            'message': '',
+            'duplicates': []
+        }
+        
+        # T009: Implement file type validation (PDF/DOCX)
+        if not utils.validate_file_type(uploaded_file):
+            result['message'] = f'Invalid file type for {uploaded_file.name}. Only PDF and DOCX files are allowed.'
+            return result
+        
+        # T010: Implement file size validation (max 10MB)
+        if not utils.validate_file_size(uploaded_file, max_size=settings.FILE_UPLOAD_MAX_MEMORY_SIZE):
+            result['message'] = f'File size exceeds 10MB limit for {uploaded_file.name}.'
+            return result
+        
+        # Calculate content hash for duplicate detection
+        content_hash = utils.calculate_file_hash(uploaded_file)
+        
+        # Check for content-based duplicates
+        content_duplicate = utils.check_duplicate_content(content_hash)
+        
+        # Extract applicant name from filename
+        applicant_name = utils.extract_applicant_name_from_filename(uploaded_file.name)
+        
+        # Check for name-based duplicates
+        name_duplicate = utils.check_duplicate_name(applicant_name)
+        
+        # Prepare duplicate information
+        duplicates = []
+        if content_duplicate:
+            duplicates.append({
+                'type': 'content',
+                'message': 'A resume with identical content already exists'
+            })
+        
+        if name_duplicate:
+            duplicates.append({
+                'type': 'name',
+                'message': f'A resume for {applicant_name} already exists'
+            })
+        
+        # T025, T026: Handle duplicate detection before saving
+        if duplicates:
+            result['duplicates'] = duplicates
+            result['status'] = 'duplicate'
+            result['content_hash'] = content_hash
+            result['applicant_name'] = applicant_name
+            return result
+        
+        # If no duplicates, save the file
+        try:
+            # Create applicant record
+            applicant = Applicant(
+                applicant_name=applicant_name,
+                resume_file=uploaded_file,
+                content_hash=content_hash,
+                file_size=uploaded_file.size,
+                file_format=os.path.splitext(uploaded_file.name)[1][1:].upper()  # Extract extension without the dot
+            )
+            applicant.full_clean()  # Run model validation
+            applicant.save()
+            
+            result['status'] = 'success'
+            result['message'] = f'{uploaded_file.name} uploaded successfully'
+            result['applicant_id'] = applicant.id
+        except Exception as e:
+            result['message'] = f'Error saving {uploaded_file.name}: {str(e)}'
+        
+        return result

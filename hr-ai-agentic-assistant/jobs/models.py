@@ -1,8 +1,8 @@
 from django.db import models
-import json
 from django.core.exceptions import ValidationError
 import bleach
 import markdown
+import hashlib
 
 
 class JobListing(models.Model):
@@ -90,3 +90,97 @@ class JobListing(models.Model):
     class Meta:
         verbose_name = "Job Listing"
         verbose_name_plural = "Job Listings"
+
+
+class Applicant(models.Model):
+    """
+    Represents an applicant with their resume data and metadata.
+    """
+    applicant_name = models.CharField(
+        max_length=255,
+        help_text="Name of the applicant extracted from the resume filename"
+    )
+    resume_file = models.FileField(
+        upload_to='resumes/',
+        help_text="Reference to the uploaded resume file (PDF/DOCX)"
+    )
+    content_hash = models.CharField(
+        max_length=64,  # SHA256 hash is 64 hex characters
+        unique=True,
+        help_text="SHA256 hash of the file content for duplicate detection"
+    )
+    file_size = models.PositiveIntegerField(
+        help_text="Size of the uploaded file in bytes"
+    )
+    file_format = models.CharField(
+        max_length=10,
+        help_text="File format (PDF, DOCX)"
+    )
+    upload_date = models.DateTimeField(
+        auto_now_add=True,
+        help_text="Timestamp of when the resume was uploaded"
+    )
+    processing_status = models.CharField(
+        max_length=20,
+        default='pending',
+        choices=[
+            ('pending', 'Pending'),
+            ('processing', 'Processing'),
+            ('completed', 'Completed'),
+            ('error', 'Error')
+        ],
+        help_text="Current status of AI processing"
+    )
+    ai_analysis_result = models.JSONField(
+        null=True,
+        blank=True,
+        help_text="JSON data containing the results of AI analysis"
+    )
+
+    def clean(self):
+        """
+        Custom validation to enforce the following rules:
+        1. File Format Validation: file_format must be either 'PDF' or 'DOCX'
+        2. File Size Validation: file_size must be between 1KB and 10MB (10485760 bytes)
+        3. Required Fields: applicant_name, resume_file, content_hash must not be null
+        4. Name Format: applicant_name should match standard name patterns extracted from the filename using pattern recognition (e.g., "FirstName_LastName_Resume.pdf")
+        """
+        # 1. File Format Validation: file_format must be either 'PDF' or 'DOCX'
+        if self.file_format.upper() not in ['PDF', 'DOCX']:
+            raise ValidationError({'file_format': 'File format must be either PDF or DOCX'})
+
+        # 2. File Size Validation: file_size must be between 1KB and 10MB (10485760 bytes)
+        if not (1024 <= self.file_size <= 10 * 1024 * 1024):  # 1KB to 10MB
+            raise ValidationError({'file_size': 'File size must be between 1KB and 10MB'})
+
+        # 3. Required Fields: applicant_name, resume_file, content_hash must not be null
+        if not self.applicant_name:
+            raise ValidationError({'applicant_name': 'Applicant name is required'})
+        if not self.resume_file:
+            raise ValidationError({'resume_file': 'Resume file is required'})
+        if not self.content_hash:
+            raise ValidationError({'content_hash': 'Content hash is required'})
+
+        # 4. Name Format: applicant_name should match standard name patterns
+        import re
+        name_pattern = r'^[A-Za-z\s\'-]+$'  # Allow letters, spaces, apostrophes, and hyphens
+        if not re.match(name_pattern, self.applicant_name):
+            raise ValidationError({'applicant_name': 'Applicant name contains invalid characters'})
+
+    def __str__(self):
+        return f"{self.applicant_name} - {self.resume_file.name}"
+
+    class Meta:
+        verbose_name = "Applicant"
+        verbose_name_plural = "Applicants"
+        # Database Indexes (from data-model.md):
+        # 1. content_hash: B-tree index for fast duplicate detection queries
+        # 2. upload_date: B-tree index for chronological queries
+        # 3. processing_status: B-tree index for status-based filtering
+        # 4. applicant_name: B-tree index for name-based searches
+        indexes = [
+            models.Index(fields=['content_hash']),
+            models.Index(fields=['upload_date']),
+            models.Index(fields=['processing_status']),
+            models.Index(fields=['applicant_name']),
+        ]

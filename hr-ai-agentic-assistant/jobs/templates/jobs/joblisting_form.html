@@ -60,11 +60,14 @@
                     <input type="hidden" name="version" value="{{ object.modified_date.timestamp }}">
                 {% endif %}
                 
-                <div class="flex space-x-4">
+                <div class="flex flex-wrap gap-4">
                     <a href="{% url 'joblisting_list' %}" class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">Cancel</a>
                     <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
                         {% if object %}Update{% else %}Create{% endif %} Job Listing
                     </button>
+                    <a href="{% url 'applicant_upload' %}" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
+                        Upload Resumes
+                    </a>
                 </div>
             </form>
         </div>

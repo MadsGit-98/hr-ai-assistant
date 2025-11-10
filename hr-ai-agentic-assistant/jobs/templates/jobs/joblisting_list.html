@@ -8,7 +8,10 @@
     <div class="container mx-auto px-4 py-8">
         <div class="flex justify-between items-center mb-6">
             <h1 class="text-2xl font-bold">Job Listings</h1>
-            <a href="{% url 'joblisting_create' %}" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">+ New Job Listing</a>
+            <div class="flex space-x-3">
+                <a href="{% url 'applicant_upload' %}" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">Upload Resumes</a>
+                <a href="{% url 'joblisting_create' %}" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">+ New Job Listing</a>
+            </div>
         </div>
         
         {% if messages %}

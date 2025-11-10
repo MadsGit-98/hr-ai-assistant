@@ -52,8 +52,8 @@ ENV/
 Thumbs.db
 
 # Project specific
-specs/*/research.md
-specs/*/data-model.md
-specs/*/plan.md
-specs/*/tasks.md
-specs/*/contracts/
+#specs/*/research.md
+#specs/*/data-model.md
+#specs/*/plan.md
+#specs/*/tasks.md
+#specs/*/contracts/
