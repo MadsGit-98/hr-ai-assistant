@@ -83,6 +83,16 @@ As a Hiring Manager, I want to filter and sort candidates based on their scores 
 - **Score Results**: Overall Score (0-100), Categorization (Senior/Mid/Junior/Mismatched), Quality Grade (A-F), analysis details, AI reasoning
 - **Hiring Manager**: User account, permissions to initiate scoring, access to results
 
+## Clarifications
+
+### Session 2025-11-11
+
+- Q: What security and privacy requirements should be implemented to protect candidate PII during and after the scoring process? → A: Basic protection with standard HTTPS and database storage
+- Q: How should the system handle failures or unavailability of the AI/ML services that perform the resume scoring? → A: The system should raise an error
+- Q: How should the system handle multiple hiring managers trying to score the same resumes simultaneously against different job listings? → A: Only allow one scoring process at a time system-wide
+- Q: For the resume parsing functionality, should the system support additional file formats beyond PDF and DOCX, such as DOC, RTF, or plain text files? → A: Support only PDF and DOCX as specified
+- Q: How should the system handle updates to job listings after some resumes have already been scored against the original requirements? → A: Ignore job listing updates for already-scored resumes
+
 ## Success Criteria *(mandatory)*
 
 ### Measurable Outcomes
