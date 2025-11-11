@@ -56,12 +56,13 @@ specs/[###-feature]/
 -->
 
 ```text
-# [REMOVE IF UNUSED] Option 1: Single project (DEFAULT)
-src/
+# [REMOVE IF UNUSED] Option 1: Django project with services subdirectory (DEFAULT)
+hr_assistant/
 ├── models/
-├── services/
-├── cli/
-└── lib/
+├── services/          # All service modules MUST be located here
+├── views/
+├── urls.py
+└── settings.py
 
 tests/
 ├── contract/
@@ -70,9 +71,9 @@ tests/
 
 # [REMOVE IF UNUSED] Option 2: Web application (when "frontend" + "backend" detected)
 backend/
-├── src/
+├── hr_assistant/
 │   ├── models/
-│   ├── services/
+│   ├── services/      # All service modules MUST be located here
 │   └── api/
 └── tests/
 
