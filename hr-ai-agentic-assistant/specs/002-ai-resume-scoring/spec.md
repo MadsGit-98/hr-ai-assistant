@@ -97,7 +97,7 @@ As a Hiring Manager, I want to filter and sort candidates based on their scores 
 
 ### Measurable Outcomes
 
-- **SC-001**: Hiring managers can initiate resume scoring for any active job listing and receive complete results within 10 minutes per 100 resumes
+- **SC-001**: Hiring managers can initiate resume scoring for any active job listing and receive complete results for up to 100 resumes within 10 minutes total processing time
 - **SC-002**: 95% of resumes successfully receive all three required scores (Overall Score, Categorization, Quality Grade) without errors
 - **SC-003**: At least 85% of hiring managers report that the AI-generated scores help them identify top candidates more efficiently
 - **SC-004**: System achieves 99% uptime during business hours when resume scoring is being processed
