@@ -139,6 +139,16 @@ class Applicant(models.Model):
         ],
         help_text="Current status of AI processing"
     )
+    analysis_status = models.CharField(
+        max_length=15,
+        default='pending',
+        choices=[
+            ('pending', 'Pending'),
+            ('analyzed', 'Analyzed'),
+            ('error', 'Error')
+        ],
+        help_text="Status of the analysis process"
+    )
     # Fields for AI analysis results
     overall_score = models.IntegerField(
         null=True,
@@ -162,10 +172,10 @@ class Applicant(models.Model):
         blank=True,
         help_text="AI-generated justification for the scores"
     )
-    analysis_date = models.DateTimeField(
+    analysis_timestamp = models.DateTimeField(
         null=True,
         blank=True,
-        help_text="Date when the analysis was completed"
+        help_text="Date and time when the analysis was completed"
     )
     ai_analysis_result = models.JSONField(
         null=True,

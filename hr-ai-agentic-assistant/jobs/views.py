@@ -6,6 +6,8 @@ from django.contrib import messages
 from django.http import JsonResponse, HttpResponse
 from django.db import transaction
 from django.conf import settings
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
 import os
 from .models import JobListing, Applicant
 from .forms import JobListingForm
@@ -155,13 +157,15 @@ class ApplicantUploadView(View):
         """
         Display the upload form with drag-and-drop interface
         """
-        # Check if there's an active job listing
+        # Get the active job listing
         active_job_listing = JobListing.objects.filter(is_active=True).first()
         if not active_job_listing:
             messages.error(request, 'No active job listing found. Please activate a job listing before uploading resumes.')
             return redirect('joblisting_list')
 
-        return render(request, 'jobs/upload.html')
+        return render(request, 'jobs/upload.html', {
+            'active_job_listing': active_job_listing
+        })
 
     def post(self, request):
         """
@@ -252,7 +256,8 @@ class ApplicantUploadView(View):
                 resume_file=uploaded_file,
                 content_hash=content_hash,
                 file_size=uploaded_file.size,
-                file_format=os.path.splitext(uploaded_file.name)[1][1:].upper()  # Extract extension without the dot
+                file_format=os.path.splitext(uploaded_file.name)[1][1:].upper(),  # Extract extension without the dot
+                analysis_status='pending'  # Set the required analysis_status field
             )
             applicant.full_clean()  # Run model validation
             applicant.save()
@@ -332,6 +337,7 @@ class ScoreResumesView(View):
                     applicant.categorization = result_item.categorization
                     applicant.justification_summary = result_item.justification_summary
                     applicant.processing_status = 'completed'
+                    applicant.analysis_status = 'analyzed'  # Update analysis status when completed
                     applicant.save()
                     
                     # Log completion
@@ -445,7 +451,7 @@ class ScoredApplicantsView(View):
                     'categorization': applicant.categorization,
                     'justification_summary': applicant.justification_summary,
                     'processing_status': applicant.processing_status,
-                    'analysis_date': applicant.modified_date if hasattr(applicant, 'modified_date') else None
+                    'analysis_date': applicant.analysis_timestamp
                 })
             
             return JsonResponse({
@@ -483,10 +489,18 @@ class DetailedAnalysisView(View):
                 'justification_summary': applicant.justification_summary,
                 'detailed_analysis': applicant.justification_summary,  # Using the summary as the detailed analysis
                 'processing_status': applicant.processing_status,
-                'analysis_date': applicant.modified_date if hasattr(applicant, 'modified_date') else None
+                'analysis_date': applicant.analysis_timestamp
             })
             
         except Applicant.DoesNotExist:
             return JsonResponse({'error': 'Applicant not found'}, status=404)
         except Exception as e:
             return JsonResponse({'error': f'Error retrieving analysis: {str(e)}'}, status=500)
+
+
+class ScoringResultsView(View):
+    """
+    View to display the results of the AI scoring process
+    """
+    def get(self, request):
+        return render(request, 'jobs/scoring_results.html')

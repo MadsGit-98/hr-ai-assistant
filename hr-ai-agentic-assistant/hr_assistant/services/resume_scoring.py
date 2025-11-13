@@ -109,7 +109,7 @@ class ResumeScoringService:
                     applicant.categorization = result_item.categorization
                     applicant.justification_summary = result_item.justification_summary
                     applicant.processing_status = 'completed'
-                    applicant.analysis_date = timezone.now()  # Add analysis date
+                    applicant.analysis_timestamp = timezone.now()  # Add analysis timestamp
                     applicant.save()
                     
                     # Log completion

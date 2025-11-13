@@ -24,4 +24,7 @@ urlpatterns = [
     path('api/job-listings/<int:job_id>/scoring-status/', views.ScoringStatusView.as_view(), name='scoring_status'),
     path('api/job-listings/<int:job_id>/scored-applicants/', views.ScoredApplicantsView.as_view(), name='scored_applicants'),
     path('api/applicants/<int:applicant_id>/detailed-analysis/', views.DetailedAnalysisView.as_view(), name='detailed_analysis'),
+
+    # AI Resume Scoring Results page
+    path('scoring-results/', views.ScoringResultsView.as_view(), name='scoring_results'),
 ]
