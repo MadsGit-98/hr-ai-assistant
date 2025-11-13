@@ -86,7 +86,7 @@ def scoring_grading_node(state: GraphState) -> GraphState:
             """
             
             try:
-                prompt = scoring_prompt.format(job_requirements= state_job_requirements, resume_texts = state_resume_text)
+                prompt = scoring_prompt.format(job_requirements=state_job_requirements, resume_text=state_resume_text)
                 response = llm.invoke(prompt)
                 response_text = response.content
                 
@@ -157,7 +157,7 @@ def categorization_node(state: GraphState) -> GraphState:
                 
                 # Validate the category
                 valid_categories = ["Senior", "Mid-Level", "Junior", "Mismatched"]
-                if categorization not in valid_categories:
+                if response_categorization not in valid_categories:
                     # Use Ollama again to get a valid category
                     validation_prompt = """
                     The category {categorization} is not valid. Choose one of: Senior, Mid-Level, Junior, or Mismatched
@@ -165,9 +165,11 @@ def categorization_node(state: GraphState) -> GraphState:
                     
                     Respond with only the valid category name.
                     """
-                    prompt = validation_prompt.format(categorization=response_categorization, resume_text= state_resume_text)
+                    prompt = validation_prompt.format(categorization=response_categorization, resume_text=state_resume_text)
                     response = llm.invoke(prompt)
                     categorization = response.content.strip()
+                else:
+                    categorization = response_categorization
                 
                 # Store in temporary state for next node
                 temp_state = state.copy()
@@ -219,7 +221,7 @@ def justification_node(state: GraphState) -> GraphState:
             """
             
             try:
-                prompt = justification_prompt.format(job_requirements = state_job_requirements, resume_text= state_resume_text, overall_score=state_overall_score, quality_grade=state_quality_grade, categorization=state_categorization)
+                prompt = justification_prompt.format(job_requirements=state_job_requirements, resume_text=state_resume_text, overall_score=state_overall_score, quality_grade=state_quality_grade, categorization=state_categorization)
                 response = llm.invoke(prompt)
                 justification = response.content.strip()
                 

@@ -177,6 +177,11 @@ class Applicant(models.Model):
         blank=True,
         help_text="Date and time when the analysis was completed"
     )
+    parsed_resume_text = models.TextField(
+        null=True,
+        blank=True,
+        help_text="Parsed text content from resume file"
+    )
     ai_analysis_result = models.JSONField(
         null=True,
         blank=True,

@@ -8,6 +8,7 @@ from django.db import transaction
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
+from django.db.models import Q
 import os
 from .models import JobListing, Applicant
 from .forms import JobListingForm
@@ -295,13 +296,38 @@ class ScoreResumesView(View):
             
             # Check if there's already a scoring process running
             # (Based on clarification that only one scoring process should run at a time)
+            from django.utils import timezone
+            from datetime import timedelta
+            
+            # Check for applicants that have been in 'processing' status for too long (e.g., 30 minutes)
+            # This handles cases where a previous process might have crashed or stalled
+            # Check for applicants that have been in 'processing' status for too long (e.g., 1 minute for testing, should be longer in production)
+            old_processing_applicants = Applicant.objects.filter(
+                job_listing=job_listing,
+                processing_status='processing'
+            ).filter(
+                # If analysis_timestamp is set but is old, or if it's null but upload_date is old
+                (
+                    Q(analysis_timestamp__lt=timezone.now() - timedelta(minutes=1)) |
+                    Q(analysis_timestamp__isnull=True, upload_date__lt=timezone.now() - timedelta(minutes=1))
+                )
+            )
+            
+            # Reset their status to 'pending' so they can be processed again
+            if old_processing_applicants.exists():
+                old_processing_applicants.update(processing_status='pending', analysis_timestamp=None)
+            
+            # Check again for any remaining processing applicants
             processing_applicants = Applicant.objects.filter(
                 job_listing=job_listing,
                 processing_status='processing'
             )
             if processing_applicants.exists():
+                # Return a list of applicants currently processing to help with debugging
+                processing_list = list(processing_applicants.values('id', 'applicant_name'))
                 return JsonResponse({
-                    'error': 'Another scoring process is currently running. Please wait for it to complete.'
+                    'error': 'Another scoring process is currently running. Please wait for it to complete.',
+                    'processing_applicants': processing_list
                 }, status=423)  # Locked status code
             
             # Update processing status to 'processing' for selected applicants
@@ -324,7 +350,7 @@ class ScoreResumesView(View):
             for applicant_id in initial_state['applicant_id_list']:
                 log_ai_processing_start(applicant_id, job_id)
             
-            # Create and run the supervisor graph
+            # Create and run the supervisor graph with error handling
             graph = create_supervisor_graph()
             result = graph.invoke(initial_state)
             
