@@ -9,12 +9,16 @@ from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from hr_assistant.services.resume_scoring import ResumeScoringService
 from django.db.models import Q
+from django.core.files.storage import default_storage
 import os
 from .models import JobListing, Applicant
 from .forms import JobListingForm
 from . import utils
 # AI Resume Scoring Engine Views
 import json
+
+# Import resume parsing service
+from .services.resume_parser import process_resume_upload
 
 
 class JobListingCreateView(CreateView):
@@ -252,6 +256,23 @@ class ApplicantUploadView(View):
             )
             applicant.full_clean()  # Run model validation
             applicant.save()
+
+            # Parse the resume text and save it to the database
+            # We need to use the saved file from storage for parsing
+            file_path = default_storage.path(applicant.resume_file.name)
+            # Read the content to create a new file-like object
+            with open(file_path, 'rb') as resume_file:
+                content = resume_file.read()
+
+            from django.core.files.uploadedfile import SimpleUploadedFile
+            # Create a temporary file object for parsing
+            temp_file = SimpleUploadedFile(
+                name=applicant.resume_file.name,
+                content=content,
+                content_type='application/octet-stream'
+            )
+            # Process and parse the resume text
+            process_resume_upload(temp_file, applicant)
 
             result['status'] = 'success'
             result['message'] = f'{uploaded_file.name} uploaded successfully'
