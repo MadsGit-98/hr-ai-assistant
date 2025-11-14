@@ -4,27 +4,17 @@ from django.views import View
 from django.urls import reverse_lazy
 from django.contrib import messages
 from django.http import JsonResponse, HttpResponse
-from django.db import transaction
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
+from hr_assistant.services.resume_scoring import ResumeScoringService
 from django.db.models import Q
 import os
 from .models import JobListing, Applicant
 from .forms import JobListingForm
 from . import utils
 # AI Resume Scoring Engine Views
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_http_methods
-from django.utils.decorators import method_decorator
-from django.views import View
-from hr_assistant.services.ai_analysis import create_supervisor_graph
-from hr_assistant.services.contracts import GraphState
-from hr_assistant.services.logging import log_ai_processing_start, log_ai_processing_complete
-from django.core.exceptions import ObjectDoesNotExist
 import json
-from typing import Dict, Any
 
 
 class JobListingCreateView(CreateView):
@@ -278,115 +268,22 @@ class ScoreResumesView(View):
     """
     def post(self, request, job_id):
         try:
-            # Get the job listing
-            job_listing = JobListing.objects.get(id=job_id)
-            
             # Parse the request body
             data = json.loads(request.body)
             applicant_ids = data.get('applicant_ids', None)
-            
-            # Get applicants for the job
-            if applicant_ids:
-                applicants = Applicant.objects.filter(
-                    id__in=applicant_ids,
-                    job_listing=job_listing
-                )
-            else:
-                applicants = Applicant.objects.filter(job_listing=job_listing)
-            
-            # Check if there's already a scoring process running
-            # (Based on clarification that only one scoring process should run at a time)
-            from django.utils import timezone
-            from datetime import timedelta
-            
-            # Check for applicants that have been in 'processing' status for too long (e.g., 30 minutes)
-            # This handles cases where a previous process might have crashed or stalled
-            # Check for applicants that have been in 'processing' status for too long (e.g., 1 minute for testing, should be longer in production)
-            old_processing_applicants = Applicant.objects.filter(
-                job_listing=job_listing,
-                processing_status='processing'
-            ).filter(
-                # If analysis_timestamp is set but is old, or if it's null but upload_date is old
-                (
-                    Q(analysis_timestamp__lt=timezone.now() - timedelta(minutes=1)) |
-                    Q(analysis_timestamp__isnull=True, upload_date__lt=timezone.now() - timedelta(minutes=1))
-                )
-            )
-            
-            # Reset their status to 'pending' so they can be processed again
-            if old_processing_applicants.exists():
-                old_processing_applicants.update(processing_status='pending', analysis_timestamp=None)
-            
-            # Check again for any remaining processing applicants
-            processing_applicants = Applicant.objects.filter(
-                job_listing=job_listing,
-                processing_status='processing'
-            )
-            if processing_applicants.exists():
-                # Return a list of applicants currently processing to help with debugging
-                processing_list = list(processing_applicants.values('id', 'applicant_name'))
-                return JsonResponse({
-                    'error': 'Another scoring process is currently running. Please wait for it to complete.',
-                    'processing_applicants': processing_list
-                }, status=423)  # Locked status code
-            
-            # Update processing status to 'processing' for selected applicants
-            applicants.update(processing_status='processing')
-            
-            # Prepare initial state for the graph
-            initial_state = GraphState(
-                applicant_id_list=[a.id for a in applicants],
-                job_criteria=job_listing.required_skills,  # Assuming this contains the job requirements
-                results=[],
-                status='processing',
-                current_index=0,
-                error_count=0,
-                total_count=len(applicants),
-                resume_texts={a.id: a.parsed_resume_text for a in applicants},
-                job_requirements=job_listing.detailed_description
-            )
-            
-            # Log the start of processing
-            for applicant_id in initial_state['applicant_id_list']:
-                log_ai_processing_start(applicant_id, job_id)
-            
-            # Create and run the supervisor graph with error handling
-            graph = create_supervisor_graph()
-            result = graph.invoke(initial_state)
-            
-            # Process results and update applicant status
-            for result_item in result.get('results', []):
-                try:
-                    applicant = Applicant.objects.get(id=result_item.applicant_id)
-                    applicant.overall_score = result_item.overall_score
-                    applicant.quality_grade = result_item.quality_grade
-                    applicant.categorization = result_item.categorization
-                    applicant.justification_summary = result_item.justification_summary
-                    applicant.processing_status = 'completed'
-                    applicant.analysis_status = 'analyzed'  # Update analysis status when completed
-                    applicant.save()
-                    
-                    # Log completion
-                    log_ai_processing_complete(
-                        result_item.applicant_id,
-                        {
-                            'overall_score': result_item.overall_score,
-                            'quality_grade': result_item.quality_grade
-                        }
-                    )
-                except Applicant.DoesNotExist:
-                    # Log error but continue processing other applicants
-                    print(f"Applicant with ID {result_item.applicant_id} not found")
-            
+
+            # Use the resume scoring service to initiate the process
+            result = ResumeScoringService.initiate_scoring_process(job_id, applicant_ids)
+
             # Return success response
             return JsonResponse({
                 'status': 'accepted',
                 'message': 'Resume scoring process initiated',
                 'job_id': job_id,
-                'applicant_count': len(applicants),
-                'tracking_id': f'score_job_{job_id}_{len(applicants)}'
+                'applicant_count': result['applicant_count'],
+                'tracking_id': f'score_job_{job_id}_{result["applicant_count"]}'
             }, status=202)  # 202 Accepted
-            
+
         except JobListing.DoesNotExist:
             return JsonResponse({'error': 'Job listing not found'}, status=404)
         except Exception as e:
@@ -400,37 +297,11 @@ class ScoringStatusView(View):
     """
     def get(self, request, job_id):
         try:
-            job_listing = JobListing.objects.get(id=job_id)
-            
-            # Get all applicants for this job
-            all_applicants = Applicant.objects.filter(job_listing=job_listing)
-            total_count = all_applicants.count()
-            
-            # Count by status
-            completed_count = all_applicants.filter(processing_status='completed').count()
-            processing_count = all_applicants.filter(processing_status='processing').count()
-            error_count = all_applicants.filter(processing_status='error').count()
-            
-            # Determine overall status
-            if completed_count == total_count:
-                overall_status = 'completed'
-            elif processing_count > 0:
-                overall_status = 'processing'
-            elif error_count > 0:
-                overall_status = 'error'
-            else:
-                overall_status = 'pending'
-            
-            return JsonResponse({
-                'job_id': job_id,
-                'status': overall_status,
-                'total_applicants': total_count,
-                'completed_count': completed_count,
-                'processing_count': processing_count,
-                'error_count': error_count,
-                'message': f'Processing {completed_count} of {total_count} applicants'
-            })
-            
+            # Use the resume scoring service to get the status
+            result = ResumeScoringService.get_scoring_status(job_id)
+
+            return JsonResponse(result)
+
         except JobListing.DoesNotExist:
             return JsonResponse({'error': 'Job listing not found'}, status=404)
         except Exception as e:
@@ -448,44 +319,23 @@ class ScoredApplicantsView(View):
             status_filter = request.GET.get('status')
             limit = int(request.GET.get('limit', 50))
             offset = int(request.GET.get('offset', 0))
-            
-            # Get job listing
-            job_listing = JobListing.objects.get(id=job_id)
-            
-            # Build query
-            applicants_query = Applicant.objects.filter(job_listing=job_listing)
-            
-            if status_filter:
-                applicants_query = applicants_query.filter(processing_status=status_filter)
-            
-            # Apply ordering (by score, descending by default)
-            applicants_query = applicants_query.order_by('-overall_score')
-            
-            # Apply pagination
-            total_count = applicants_query.count()
-            applicants = applicants_query[offset:offset+limit]
-            
-            # Serialize applicants
-            applicant_data = []
-            for applicant in applicants:
-                applicant_data.append({
-                    'id': applicant.id,
-                    'name': applicant.applicant_name,
-                    'email': applicant.email if hasattr(applicant, 'email') else None,
-                    'overall_score': applicant.overall_score,
-                    'quality_grade': applicant.quality_grade,
-                    'categorization': applicant.categorization,
-                    'justification_summary': applicant.justification_summary,
-                    'processing_status': applicant.processing_status,
-                    'analysis_date': applicant.analysis_timestamp
-                })
-            
-            return JsonResponse({
-                'job_id': job_id,
-                'applicants': applicant_data,
-                'total_count': total_count,
-                'filtered_count': len(applicant_data)
-            })
+
+            # Use the resume scoring service to get the applicants
+            result = ResumeScoringService.get_scored_applicants(job_id, status_filter, limit, offset)
+
+            # Add email to each applicant record in the response
+            for applicant_data in result['applicants']:
+                try:
+                    applicant = Applicant.objects.get(id=applicant_data['id'])
+                    applicant_data['email'] = getattr(applicant, 'email', None)
+                    # Update the analysis_date field to match the original format
+                    if hasattr(applicant, 'analysis_timestamp') and applicant.analysis_timestamp:
+                        applicant_data['analysis_date'] = applicant.analysis_timestamp
+                except Applicant.DoesNotExist:
+                    applicant_data['email'] = None
+                    applicant_data['analysis_date'] = None
+
+            return JsonResponse(result)
             
         except JobListing.DoesNotExist:
             return JsonResponse({'error': 'Job listing not found'}, status=404)
@@ -503,21 +353,11 @@ class DetailedAnalysisView(View):
     """
     def get(self, request, applicant_id):
         try:
-            applicant = Applicant.objects.get(id=applicant_id)
-            
-            # Return detailed analysis information
-            return JsonResponse({
-                'applicant_id': applicant.id,
-                'name': applicant.applicant_name,
-                'overall_score': applicant.overall_score,
-                'quality_grade': applicant.quality_grade,
-                'categorization': applicant.categorization,
-                'justification_summary': applicant.justification_summary,
-                'detailed_analysis': applicant.justification_summary,  # Using the summary as the detailed analysis
-                'processing_status': applicant.processing_status,
-                'analysis_date': applicant.analysis_timestamp
-            })
-            
+            # Use the resume scoring service to get the detailed analysis
+            result = ResumeScoringService.get_detailed_analysis(applicant_id)
+
+            return JsonResponse(result)
+
         except Applicant.DoesNotExist:
             return JsonResponse({'error': 'Applicant not found'}, status=404)
         except Exception as e:

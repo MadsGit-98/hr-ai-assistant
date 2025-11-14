@@ -3,22 +3,23 @@ Resume scoring service interface
 """
 from typing import List, Dict, Any
 from django.utils import timezone
+from django.db.models import Q
 from hr_assistant.services.ai_analysis import create_supervisor_graph
 from hr_assistant.services.contracts import GraphState, AIAnalysisResponse
 from jobs.models import Applicant, JobListing
+from datetime import timedelta
 from hr_assistant.services.logging import (
-    log_ai_processing_start, log_ai_processing_complete, 
+    log_ai_processing_start, log_ai_processing_complete,
     handle_ai_errors, AIProcessingError
 )
 from django.db import transaction
-from jobs.services.resume_parser import process_resume_upload
 
 
 class ResumeScoringService:
     """
     Service class to handle resume scoring operations
     """
-    
+
     @staticmethod
     @handle_ai_errors(context="initiate_scoring_process")
     def initiate_scoring_process(job_id: int, applicant_ids: List[int] = None) -> Dict[str, Any]:
@@ -28,19 +29,19 @@ class ResumeScoringService:
         # Validate inputs
         if job_id <= 0:
             raise AIProcessingError("Invalid job_id provided", error_code="INVALID_JOB_ID")
-        
+
         if applicant_ids is not None and not isinstance(applicant_ids, list):
             raise AIProcessingError("applicant_ids must be a list of integers", error_code="INVALID_APPLICANT_IDS")
-        
+
         if applicant_ids is not None and not all(isinstance(aid, int) and aid > 0 for aid in applicant_ids):
             raise AIProcessingError("All applicant IDs must be positive integers", error_code="INVALID_APPLICANT_IDS")
-        
+
         # Get the job listing
         try:
             job_listing = JobListing.objects.get(id=job_id)
         except JobListing.DoesNotExist:
             raise AIProcessingError(f"Job listing with ID {job_id} does not exist", error_code="JOB_NOT_FOUND")
-        
+
         # Get applicants for the job
         if applicant_ids:
             applicants = Applicant.objects.filter(
@@ -58,24 +59,44 @@ class ResumeScoringService:
                 )
         else:
             applicants = Applicant.objects.filter(job_listing=job_listing)
-        
+
         if not applicants.exists():
             raise AIProcessingError("No applicants found for the specified job listing", error_code="NO_APPLICANTS")
-        
+
         # Check if there's already a scoring process running
+        # Check for applicants that have been in 'processing' status for too long (e.g., 1 minute for testing, should be longer in production)
+        old_processing_applicants = Applicant.objects.filter(
+            job_listing=job_listing,
+            processing_status='processing'
+        ).filter(
+            # If analysis_timestamp is set but is old, or if it's null but upload_date is old
+            (
+                Q(analysis_timestamp__lt=timezone.now() - timedelta(minutes=1)) |
+                Q(analysis_timestamp__isnull=True, upload_date__lt=timezone.now() - timedelta(minutes=1))
+            )
+        )
+
+        # Reset their status to 'pending' so they can be processed again
+        if old_processing_applicants.exists():
+            old_processing_applicants.update(processing_status='pending', analysis_timestamp=None)
+
+        # Check again for any remaining processing applicants
         processing_applicants = Applicant.objects.filter(
             job_listing=job_listing,
             processing_status='processing'
         )
         if processing_applicants.exists():
+            # Return a list of applicants currently processing to help with debugging
+            processing_list = list(processing_applicants.values('id', 'applicant_name'))
             raise AIProcessingError(
                 "Another scoring process is currently running. Please wait for it to complete.",
-                error_code="PROCESS_LOCKED"
+                error_code="PROCESS_LOCKED",
+                additional_data={'processing_applicants': processing_list}
             )
-        
+
         # Update processing status to 'processing' for selected applicants
         applicants.update(processing_status='processing')
-        
+
         # Prepare initial state for the graph
         initial_state = GraphState(
             applicant_id_list=[a.id for a in applicants],
@@ -88,15 +109,15 @@ class ResumeScoringService:
             resume_texts={a.id: a.parsed_resume_text or "" for a in applicants},  # Use empty string if None
             job_requirements=job_listing.detailed_description or ""
         )
-        
+
         # Log the start of processing
         for applicant_id in initial_state['applicant_id_list']:
             log_ai_processing_start(applicant_id, job_id)
-        
+
         # Create and run the supervisor graph
         graph = create_supervisor_graph()
         result = graph.invoke(initial_state)
-        
+
         # Process results and update applicant status
         processed_count = 0
         error_count = 0
@@ -109,9 +130,10 @@ class ResumeScoringService:
                     applicant.categorization = result_item.categorization
                     applicant.justification_summary = result_item.justification_summary
                     applicant.processing_status = 'completed'
+                    applicant.analysis_status = 'analyzed'  # Update analysis status when completed
                     applicant.analysis_timestamp = timezone.now()  # Add analysis timestamp
                     applicant.save()
-                    
+
                     # Log completion
                     log_ai_processing_complete(
                         result_item.applicant_id,
@@ -129,7 +151,7 @@ class ResumeScoringService:
                 # Log error for this specific applicant but continue processing others
                 print(f"Error updating applicant {result_item.applicant_id}: {str(e)}")
                 error_count += 1
-        
+
         return {
             'status': 'success',
             'job_id': job_id,
