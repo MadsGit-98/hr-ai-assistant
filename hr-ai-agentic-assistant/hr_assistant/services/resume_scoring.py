@@ -12,7 +12,12 @@ from hr_assistant.services.logging import (
     log_ai_processing_start, log_ai_processing_complete,
     handle_ai_errors, AIProcessingError
 )
+import traceback
 from django.db import transaction
+
+# Import logger for additional debugging
+import logging
+ai_logger = logging.getLogger('ai_processing')
 
 
 class ResumeScoringService:
@@ -97,28 +102,55 @@ class ResumeScoringService:
         # Update processing status to 'processing' for selected applicants
         applicants.update(processing_status='processing')
 
+        # Log that we're starting processing
+        ai_logger.info(f"Starting resume scoring for job {job_id} with {applicants.count()} applicants")
+
         # Prepare initial state for the graph
+        applicant_ids_list = [a.id for a in applicants]
+        resume_texts_dict = {a.id: a.parsed_resume_text or "" for a in applicants}
+
+        # Log resume text content for debugging
+        for aid, resume_text in resume_texts_dict.items():
+            if not resume_text or len(resume_text.strip()) == 0:
+                ai_logger.warning(f"Applicant {aid} has empty or null parsed_resume_text")
+            else:
+                ai_logger.info(f"Applicant {aid} has resume text of length {len(resume_text)}")
+
         initial_state = GraphState(
-            applicant_id_list=[a.id for a in applicants],
+            applicant_id_list=applicant_ids_list,
             job_criteria=job_listing.required_skills,
             results=[],
             status='processing',
             current_index=0,
             error_count=0,
             total_count=len(applicants),
-            resume_texts={a.id: a.parsed_resume_text or "" for a in applicants},  # Use empty string if None
+            resume_texts=resume_texts_dict,  # Use empty string if None
             job_requirements=job_listing.detailed_description or ""
         )
 
+
+        ai_logger.info(f"Initial State: {initial_state}")
         # Log the start of processing
         for applicant_id in initial_state['applicant_id_list']:
             log_ai_processing_start(applicant_id, job_id)
 
         # Create and run the supervisor graph
-        graph = create_supervisor_graph()
-        result = graph.invoke(initial_state)
+        ai_logger.info(f"About to create and invoke supervisor graph for {len(initial_state['applicant_id_list'])} applicants")
+        try:
+            graph = create_supervisor_graph()
+            ai_logger.info("Supervisor graph created successfully, about to invoke")
+            ai_logger.info(f"Compiled Graph: {graph}")
+            result = graph.invoke(input=initial_state)
+            ai_logger.info(f"Graph invoke completed successfully, got {len(result.get('results', []))} results")
+        except Exception as graph_error:
+            ai_logger.error(f"Error in graph invocation: {str(graph_error)}")
+            ai_logger.error(f"Traceback: {traceback.format_exc()}")
+            # Update applicants status to error
+            applicants.update(processing_status='error')
+            raise graph_error
 
         # Process results and update applicant status
+        ai_logger.info(f"Processing {len(result.get('results', []))} results from graph")
         processed_count = 0
         error_count = 0
         for result_item in result.get('results', []):
@@ -143,14 +175,18 @@ class ResumeScoringService:
                         }
                     )
                     processed_count += 1
+                    ai_logger.info(f"Successfully processed and saved results for applicant {result_item.applicant_id}")
             except Applicant.DoesNotExist:
                 # Log error but continue processing other applicants
-                print(f"Applicant with ID {result_item.applicant_id} not found")
+                ai_logger.error(f"Applicant with ID {result_item.applicant_id} not found")
                 error_count += 1
             except Exception as e:
                 # Log error for this specific applicant but continue processing others
-                print(f"Error updating applicant {result_item.applicant_id}: {str(e)}")
+                ai_logger.error(f"Error updating applicant {result_item.applicant_id}: {str(e)}")
+                ai_logger.error(f"Traceback: {traceback.format_exc()}")
                 error_count += 1
+
+        ai_logger.info(f"Resume scoring completed. Processed: {processed_count}, Errors: {error_count}")
 
         return {
             'status': 'success',

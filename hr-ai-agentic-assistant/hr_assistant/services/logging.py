@@ -12,9 +12,15 @@ from functools import wraps
 ai_logger = logging.getLogger('ai_processing')
 ai_logger.setLevel(logging.INFO)
 
+# Create logs directory if it doesn't exist
+import os
+logs_dir = 'logs'
+if not os.path.exists(logs_dir):
+    os.makedirs(logs_dir, exist_ok=True)
+
 # Create a file handler for AI processing logs
 if not ai_logger.handlers:
-    file_handler = logging.FileHandler('logs/ai_processing.log')
+    file_handler = logging.FileHandler(os.path.join(logs_dir, 'ai_processing.log'))
     file_handler.setLevel(logging.INFO)
     
     # Create a console handler for debugging

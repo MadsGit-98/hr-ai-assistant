@@ -288,26 +288,43 @@ class ScoreResumesView(View):
     View to initiate resume scoring for a job listing
     """
     def post(self, request, job_id):
+        # Import logging for view-level debugging
+        import logging
+        ai_logger = logging.getLogger('ai_processing')
+
         try:
+            ai_logger.info(f"ScoreResumesView received request for job_id: {job_id}")
+
             # Parse the request body
             data = json.loads(request.body)
             applicant_ids = data.get('applicant_ids', None)
 
+            ai_logger.info(f"Request data: job_id={job_id}, applicant_ids={applicant_ids}")
+
             # Use the resume scoring service to initiate the process
             result = ResumeScoringService.initiate_scoring_process(job_id, applicant_ids)
 
+            ai_logger.info(f"ResumeScoringService returned successfully: {result}")
+
             # Return success response
-            return JsonResponse({
+            response_data = {
                 'status': 'accepted',
                 'message': 'Resume scoring process initiated',
                 'job_id': job_id,
                 'applicant_count': result['applicant_count'],
                 'tracking_id': f'score_job_{job_id}_{result["applicant_count"]}'
-            }, status=202)  # 202 Accepted
+            }
+
+            ai_logger.info(f"Returning response: {response_data}")
+            return JsonResponse(response_data, status=202)  # 202 Accepted
 
         except JobListing.DoesNotExist:
+            ai_logger.error(f'Job listing not found for ID: {job_id}')
             return JsonResponse({'error': 'Job listing not found'}, status=404)
         except Exception as e:
+            ai_logger.error(f'Error processing request for job {job_id}: {str(e)}')
+            import traceback
+            ai_logger.error(f'Traceback: {traceback.format_exc()}')
             return JsonResponse({'error': f'Error processing request: {str(e)}'}, status=500)
 
 
