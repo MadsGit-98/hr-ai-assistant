@@ -320,12 +320,11 @@ def create_worker_graph():
     worker_graph.add_node("justification", justification_node)
     
     # Define the flow for a single resume
+    worker_graph.add_edge(START, "data_retrieval")
     worker_graph.add_edge("data_retrieval", "scoring_grading")
     worker_graph.add_edge("scoring_grading", "categorization")
     worker_graph.add_edge("categorization", "justification")
-    
-    # Set entry point
-    worker_graph.set_entry_point("data_retrieval")
+    worker_graph.add_edge("justification", END)
     
     return worker_graph.compile()
 
@@ -408,7 +407,7 @@ def create_supervisor_graph():
             }
 
             # Use Send to dispatch to the worker_node with specific parameters
-            sends.append(Send("worker_node", worker_state))
+            sends.append(Send("WorkerSubGraph", worker_state))
 
         ai_logger.info(f"[Dispatch Workers Node] Created {len(sends)} worker dispatches")
         # Return the sends to trigger parallel execution
@@ -427,10 +426,12 @@ def create_supervisor_graph():
 
     # Create the supervisor graph
     supervisor_graph = StateGraph(GraphState)
+    worker_subgraph = create_worker_graph()
     
     # Add nodes
     supervisor_graph.add_node("dispatch_workers", dispatch_workers)
-    supervisor_graph.add_node("worker_node", worker_node)
+    #supervisor_graph.add_node("worker_node", worker_node)
+    supervisor_graph.add_node("WorkerSubGraph", worker_subgraph)
     supervisor_graph.add_node("process_results", process_results)
     supervisor_graph.add_node("bulk_persistence", bulk_persistence_node)
     
@@ -441,7 +442,9 @@ def create_supervisor_graph():
     # The dispatch_workers node handles the parallel dispatch using SEND
     
     # Add edges from worker to results processing and then to persistence
-    supervisor_graph.add_edge("worker_node", "process_results")
+    #supervisor_graph.add_edge("worker_node", "process_results")
+    supervisor_graph.add_edge("dispatch_workers", "WorkerSubGraph")
+    supervisor_graph.add_edge("WorkerSubGraph", "process_results")
     supervisor_graph.add_edge("process_results", "bulk_persistence")
     supervisor_graph.add_edge("bulk_persistence", END)
     
