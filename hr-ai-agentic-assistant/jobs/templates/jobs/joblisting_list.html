@@ -5,6 +5,66 @@
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100">
+    <script>
+        function initiateAIScoring(jobId) {
+            if (!confirm('Start AI scoring for this job listing? This will analyze all uploaded resumes against the job requirements.')) {
+                return;
+            }
+
+            // Show loading indicator
+            const button = event.target;
+            const originalText = button.textContent;
+            const originalClass = button.className;
+            button.textContent = 'Processing...';
+            button.className = 'text-sm text-purple-600 hover:underline cursor-not-allowed opacity-50';
+            button.disabled = true;
+
+            fetch(`/jobs/api/job-listings/${jobId}/score-resumes/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({})
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'accepted') {
+                    // Success - redirect to scoring results page
+                    window.location.href = '{% url "scoring_results" %}';
+                } else {
+                    // Error - restore button and show message
+                    alert('Error starting AI scoring: ' + (data.message || data.error));
+                    button.textContent = originalText;
+                    button.className = originalClass;
+                    button.disabled = false;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error starting AI scoring: ' + error.message);
+                button.textContent = originalText;
+                button.className = originalClass;
+                button.disabled = false;
+            });
+        }
+
+        // Helper function to get CSRF token
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+    </script>
     <div class="container mx-auto px-4 py-8">
         <div class="flex justify-between items-center mb-6">
             <h1 class="text-2xl font-bold">Job Listings</h1>
@@ -45,6 +105,9 @@
                             <a href="{% url 'joblisting_detail' job.pk %}" class="text-sm text-blue-600 hover:underline">View</a>
                             <a href="{% url 'joblisting_update' job.pk %}" class="text-sm text-blue-600 hover:underline">Edit</a>
                             <a href="{% url 'joblisting_delete' job.pk %}" class="text-sm text-red-600 hover:underline">Delete</a>
+                            {% if job.is_active and job.applicant_count > 0 %}
+                                <button onclick="initiateAIScoring({{ job.pk }})" class="text-sm text-purple-600 hover:underline cursor-pointer">AI Score</button>
+                            {% endif %}
                             {% if not job.is_active %}
                                 <a href="{% url 'joblisting_activate' job.pk %}" class="text-sm text-green-600 hover:underline">Activate</a>
                             {% endif %}

@@ -62,6 +62,13 @@ class JobListingListView(ListView):
     template_name = 'jobs/joblisting_list.html'
     context_object_name = 'job_listings'
 
+    def get_queryset(self):
+        """
+        Annotate job listings with applicant count for better performance
+        """
+        from django.db.models import Count
+        return JobListing.objects.annotate(applicant_count=Count('applicants'))
+
     def get_context_data(self, **kwargs):
         """
         Add has_active_listing to context to conditionally show upload button

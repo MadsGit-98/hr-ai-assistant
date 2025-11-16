@@ -122,20 +122,45 @@ def scoring_grading_node(state: GraphState) -> GraphState:
 
                 ai_logger.info(f"[Scoring Grading Node] Parsed score: {overall_score}, grade: {quality_grade} for applicant {applicant_id}")
 
-                # Store in temporary state for next node
-                temp_state = state.copy()
-                temp_state["current_overall_score"] = overall_score
-                temp_state["current_quality_grade"] = quality_grade
+                # Check if current_analysis_response exists in state before accessing it
+                if "current_analysis_response" not in state:
+                    # Initialize if not present
+                    state["current_analysis_response"] = AIAnalysisResponse(
+                        overall_score=0,
+                        quality_grade="F",
+                        categorization="Mismatched",
+                        justification_summary="",
+                        applicant_id=applicant_id
+                    )
 
-                return temp_state
+                # Store in temporary state for next node
+                #temp_state = state.copy()
+                #temp_state["current_overall_score"] = overall_score
+                #temp_state["current_quality_grade"] = quality_grade
+                state["current_analysis_response"].overall_score = overall_score
+                state["current_analysis_response"].quality_grade = quality_grade
+                return state
             except Exception as e:
                 ai_logger.error(f"[Scoring Grading Node] Error in scoring_grading_node for applicant {applicant_id}: {str(e)}")
                 # Return default values in case of error
-                temp_state = state.copy()
-                temp_state["current_overall_score"] = 0
-                temp_state["current_quality_grade"] = "F"
+                #temp_state = state.copy()
+                #temp_state["current_overall_score"] = 0
+                #temp_state["current_quality_grade"] = "F"
 
-                return temp_state
+                # Check if current_analysis_response exists in state before accessing it
+                if "current_analysis_response" not in state:
+                    # Initialize if not present
+                    state["current_analysis_response"] = AIAnalysisResponse(
+                        overall_score=0,
+                        quality_grade="F",
+                        categorization="Mismatched",
+                        justification_summary="",
+                        applicant_id=applicant_id
+                    )
+
+                state["current_analysis_response"].overall_score = 0
+                state["current_analysis_response"].quality_grade = "F"
+                return state
 
     ai_logger.info(f"[Scoring Grading Node] Completed without processing applicant")
     return state
@@ -200,18 +225,43 @@ def categorization_node(state: GraphState) -> GraphState:
                     categorization = response_categorization
                     ai_logger.info(f"[Categorization Node] Valid category for applicant {applicant_id}: '{categorization}'")
 
-                # Store in temporary state for next node
-                temp_state = state.copy()
-                temp_state["current_categorization"] = categorization
+                # Check if current_analysis_response exists in state before accessing it
+                if "current_analysis_response" not in state:
+                    # Initialize if not present
+                    state["current_analysis_response"] = AIAnalysisResponse(
+                        overall_score=0,
+                        quality_grade="F",
+                        categorization="Mismatched",
+                        justification_summary="",
+                        applicant_id=applicant_id
+                    )
 
-                return temp_state
+                # Store in temporary state for next node
+                #temp_state = state.copy()
+                #temp_state["current_categorization"] = categorization
+                state["current_analysis_response"].categorization = categorization
+
+                return state
             except Exception as e:
                 ai_logger.error(f"[Categorization Node] Error in categorization_node for applicant {applicant_id}: {str(e)}")
                 # Return default value in case of error
-                temp_state = state.copy()
-                temp_state["current_categorization"] = "Mismatched"
+                #temp_state = state.copy()
+                #temp_state["current_categorization"] = "Mismatched"
 
-                return temp_state
+                # Check if current_analysis_response exists in state before accessing it
+                if "current_analysis_response" not in state:
+                    # Initialize if not present
+                    state["current_analysis_response"] = AIAnalysisResponse(
+                        overall_score=0,
+                        quality_grade="F",
+                        categorization="Mismatched",
+                        justification_summary="",
+                        applicant_id=applicant_id
+                    )
+
+                state["current_analysis_response"].categorization = "Mismatched"
+
+                return state
 
     ai_logger.info(f"[Categorization Node] Completed without processing applicant")
     return state
@@ -233,9 +283,9 @@ def justification_node(state: GraphState) -> GraphState:
             applicant_id = applicant_id_list[current_idx]
             state_resume_text = state["resume_texts"].get(applicant_id, "")
             state_job_requirements = state.get("job_requirements", "")
-            state_overall_score = state.get("current_overall_score", 0)
-            state_quality_grade = state.get("current_quality_grade", "F")
-            state_categorization = state.get("current_categorization", "Mismatched")
+            state_overall_score = state["current_analysis_response"].overall_score
+            state_quality_grade = state["current_analysis_response"].quality_grade
+            state_categorization = state["current_analysis_response"].categorization
 
             ai_logger.info(f"[Justification Node] Processing applicant {applicant_id}, resume length: {len(state_resume_text)}, score: {state_overall_score}, grade: {state_quality_grade}, category: {state_categorization}")
 
@@ -263,45 +313,73 @@ def justification_node(state: GraphState) -> GraphState:
                 ai_logger.info(f"[Justification Node] Received justification for applicant {applicant_id}: '{justification[:100]}...'")
 
                 # Create the AIAnalysisResponse object
-                analysis_result = AIAnalysisResponse(
-                    overall_score=state.get("current_overall_score", 0),
-                    quality_grade=state.get("current_quality_grade", "F"),
-                    categorization=state.get("current_categorization", "Mismatched"),
-                    justification_summary=justification,
-                    applicant_id=applicant_id
-                )
+                #analysis_result = AIAnalysisResponse(
+                    #overall_score=state.get("current_overall_score", 0),
+                    #quality_grade=state.get("current_quality_grade", "F"),
+                    #categorization=state.get("current_categorization", "Mismatched"),
+                    #justification_summary=justification,
+                    #applicant_id=applicant_id
+                #)
+                # Check if current_analysis_response exists in state before accessing it
+                if "current_analysis_response" not in state:
+                    # Initialize if not present
+                    state["current_analysis_response"] = AIAnalysisResponse(
+                        overall_score=0,
+                        quality_grade="F",
+                        categorization="Mismatched",
+                        justification_summary="",
+                        applicant_id=applicant_id
+                    )
+
+                # Store in the currently available AIAnalysisResponse object in the graph's state
+                state["current_analysis_response"].justification_summary = justification
 
                 # Add to results
                 results = state.get("results", [])
-                results.append(analysis_result)
+                #results.append(analysis_result)
 
                 ai_logger.info(f"[Justification Node] Created analysis result for applicant {applicant_id}, results count: {len(results)}")
 
-                temp_state = state.copy()
-                temp_state["results"] = results
+                #temp_state = state.copy()
+                #temp_state["results"] = results
 
-                return temp_state
+                final_result = [state["current_analysis_response"]]
+                return {"results": final_result}
             except Exception as e:
                 ai_logger.error(f"[Justification Node] Error in justification_node for applicant {applicant_id}: {str(e)}")
                 # Create a result with default values in case of error
-                analysis_result = AIAnalysisResponse(
-                    overall_score=state.get("current_overall_score", 0),
-                    quality_grade=state.get("current_quality_grade", "F"),
-                    categorization=state.get("current_categorization", "Mismatched"),
-                    justification_summary=f"Error processing: {str(e)}",
-                    applicant_id=applicant_id
-                )
+                #analysis_result = AIAnalysisResponse(
+                    #overall_score=state.get("current_overall_score", 0),
+                    #quality_grade=state.get("current_quality_grade", "F"),
+                    #categorization=state.get("current_categorization", "Mismatched"),
+                    #justification_summary=f"Error processing: {str(e)}",
+                    #applicant_id=applicant_id
+                #)
+
+                # Check if current_analysis_response exists in state before accessing it
+                if "current_analysis_response" not in state:
+                    # Initialize if not present
+                    state["current_analysis_response"] = AIAnalysisResponse(
+                        overall_score=0,
+                        quality_grade="F",
+                        categorization="Mismatched",
+                        justification_summary="",
+                        applicant_id=applicant_id
+                    )
+
+                state["current_analysis_response"].justification_summary = f"Error processing: {str(e)}"
 
                 # Add to results
-                results = state.get("results", [])
-                results.append(analysis_result)
+                #results = state.get("results", [])
+                #results.append(analysis_result)
 
                 ai_logger.info(f"[Justification Node] Created error analysis result for applicant {applicant_id}")
 
-                temp_state = state.copy()
-                temp_state["results"] = results
+                #temp_state = state.copy()
+                #temp_state["results"] = results
 
-                return temp_state
+                final_result = [state["current_analysis_response"]]
+                return {"results": final_result}
 
     ai_logger.info(f"[Justification Node] Completed without processing applicant")
     return state
@@ -328,54 +406,6 @@ def create_worker_graph():
     
     return worker_graph.compile()
 
-
-def worker_node(state: GraphState) -> GraphState:
-    """
-    Single node that runs the worker graph for one applicant
-    """
-    # Get the current applicant to process
-    current_idx = state.get("current_index", 0)
-    applicant_id_list = state.get("applicant_id_list", [])
-
-    ai_logger.info(f"[Worker Node] Starting processing for index {current_idx}, total applicants: {len(applicant_id_list) if applicant_id_list else 0}")
-
-    if current_idx < len(applicant_id_list):
-        # Create a temporary state for this single applicant
-        applicant_id = applicant_id_list[current_idx]
-        ai_logger.info(f"[Worker Node] Processing applicant {applicant_id}, current index: {current_idx}")
-
-        # Create a temporary state for this specific applicant
-        worker_state = state.copy()
-        worker_state["applicant_id_list"] = [applicant_id]
-        worker_state["current_index"] = 0  # Each worker processes its own applicant from start
-
-        # Run the worker process
-        ai_logger.info(f"[Worker Node] Creating and invoking worker graph for applicant {applicant_id}")
-        worker_graph = create_worker_graph()
-        result_state = worker_graph.invoke(worker_state)
-
-        ai_logger.info(f"[Worker Node] Worker graph completed for applicant {applicant_id}, results count: {len(result_state.get('results', []))}")
-
-        # Extract the results from the worker run
-        worker_results = result_state.get("results", [])
-
-        # Merge the results back to the main state
-        results = state.get("results", [])
-        results.extend(worker_results)
-
-        ai_logger.info(f"[Worker Node] Merged results, total results now: {len(results)}")
-
-        new_state = state.copy()
-        new_state["results"] = results
-        new_state["current_index"] = current_idx + 1  # Move to next applicant in main list
-
-        ai_logger.info(f"[Worker Node] Completed applicant {applicant_id}, moving to index {new_state['current_index']}")
-        return new_state
-
-    ai_logger.info(f"[Worker Node] No more applicants to process, current index {current_idx} >= {len(applicant_id_list) if applicant_id_list else 0}")
-    return state
-
-
 def create_supervisor_graph():
     """
     Create the Supervisor Main Graph with Map-Reduce pattern using Send for parallel execution
@@ -393,6 +423,7 @@ def create_supervisor_graph():
         sends = []
         for applicant_id in applicant_ids:
             ai_logger.info(f"[Dispatch Workers Node] Creating worker for applicant {applicant_id}")
+            current_analysis_response = AIAnalysisResponse(overall_score=0, quality_grade="F", categorization="Mismatched", justification_summary="", applicant_id=applicant_id)
             # Create a specific state for this applicant to be processed
             worker_state = {
                 "applicant_id_list": [applicant_id],
@@ -403,7 +434,8 @@ def create_supervisor_graph():
                 "error_count": 0,
                 "total_count": 1,
                 "resume_texts": state.get("resume_texts", {}),
-                "job_requirements": state.get("job_requirements", "")
+                "job_requirements": state.get("job_requirements", ""),
+                "current_analysis_response": current_analysis_response
             }
 
             # Use Send to dispatch to the worker_node with specific parameters
@@ -417,8 +449,15 @@ def create_supervisor_graph():
         """
         Collect and process results from all workers before persistence
         """
-        results_count = len(state.get("results", []))
+        final_results = state.get("results", [])
+        results_count = len(final_results)
         ai_logger.info(f"[Process Results Node] Processing {results_count} results from workers")
+        for result in final_results:
+            ai_logger.info(f"Result for applicant no. {result.applicant_id}")
+            ai_logger.info(f"Overall Score: {result.overall_score}")
+            ai_logger.info(f"Quality Grade: {result.quality_grade}")
+            ai_logger.info(f"Categorization:{result.categorization}")
+            ai_logger.info(f"Justification: {result.justification_summary}")
 
         # This would collect results from all parallel workers
         # In our current setup, we're handling results collection in the worker node
@@ -481,10 +520,10 @@ def bulk_persistence_node(state: GraphState) -> GraphState:
             error_count += 1
 
     # Update state with final status
-    final_state = state.copy()
-    final_state["status"] = "completed"
-    final_state["error_count"] = state.get("error_count", 0) + error_count
+    #final_state = state.copy()
+    state["status"] = "completed"
+    state["error_count"] = state.get("error_count", 0) + error_count
 
-    ai_logger.info(f"[Bulk Persistence Node] Completed bulk persistence, errors: {error_count}, final status: {final_state['status']}")
+    ai_logger.info(f"[Bulk Persistence Node] Completed bulk persistence, errors: {error_count}, final status: {state['status']}")
 
-    return final_state
+    return state
