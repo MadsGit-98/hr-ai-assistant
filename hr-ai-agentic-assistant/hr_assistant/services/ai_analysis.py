@@ -412,7 +412,43 @@ def create_supervisor_graph():
         # This would collect results from all parallel workers
         # In our current setup, we're handling results collection in the worker node
         return {"results": [analysis_response]}
+        
+    def bulk_persistence_node(state: GraphState):
+        """
+        Bulk Persistence Node: Updates Applicant records in SQLite3 database via Django ORM
+        """
+        results = state.get("results", [])
+        error_count = 0
 
+        ai_logger.info(f"[Bulk Persistence Node] Starting bulk persistence for {len(results)} results")
+
+        # Prepare bulk update data
+        for i, result in enumerate(results):
+            ai_logger.info(f"[Bulk Persistence Node] Processing result {i+1}/{len(results)} for applicant {result.applicant_id}")
+            try:
+                # Update the applicant record with the analysis results
+                applicant = Applicant.objects.get(id=result.applicant_id)
+                ai_logger.info(f"[Bulk Persistence Node] Updating applicant {result.applicant_id} with score: {result.overall_score}, grade: {result.quality_grade}, category: {result.categorization}")
+
+                applicant.overall_score = result.overall_score
+                applicant.quality_grade = result.quality_grade
+                applicant.categorization = result.categorization
+                applicant.justification_summary = result.justification_summary
+                applicant.processing_status = 'completed'
+                applicant.save()
+
+                ai_logger.info(f"[Bulk Persistence Node] Successfully updated applicant {result.applicant_id}")
+            except Exception as e:
+                ai_logger.error(f"[Bulk Persistence Node] Error updating applicant {result.applicant_id}: {str(e)}")
+                error_count += 1
+
+        # Update state with final status
+        state["status"] = "completed"
+        state["error_count"] = state.get("error_count", 0) + error_count
+
+        ai_logger.info(f"[Bulk Persistence Node] Completed bulk persistence, errors: {error_count}, final status: {state['status']}")
+
+        return state
     # Create the supervisor graph
     supervisor_graph = StateGraph(GraphState)
     # Compiled worker subgraph
@@ -429,41 +465,3 @@ def create_supervisor_graph():
     supervisor_graph.add_edge("bulk_persistence", END)
     
     return supervisor_graph.compile()
-
-
-def bulk_persistence_node(state: GraphState) -> GraphState:
-    """
-    Bulk Persistence Node: Updates Applicant records in SQLite3 database via Django ORM
-    """
-    results = state.get("results", [])
-    error_count = 0
-
-    ai_logger.info(f"[Bulk Persistence Node] Starting bulk persistence for {len(results)} results")
-
-    # Prepare bulk update data
-    for i, result in enumerate(results):
-        ai_logger.info(f"[Bulk Persistence Node] Processing result {i+1}/{len(results)} for applicant {result.applicant_id}")
-        try:
-            # Update the applicant record with the analysis results
-            applicant = Applicant.objects.get(id=result.applicant_id)
-            ai_logger.info(f"[Bulk Persistence Node] Updating applicant {result.applicant_id} with score: {result.overall_score}, grade: {result.quality_grade}, category: {result.categorization}")
-
-            applicant.overall_score = result.overall_score
-            applicant.quality_grade = result.quality_grade
-            applicant.categorization = result.categorization
-            applicant.justification_summary = result.justification_summary
-            applicant.processing_status = 'completed'
-            applicant.save()
-
-            ai_logger.info(f"[Bulk Persistence Node] Successfully updated applicant {result.applicant_id}")
-        except Exception as e:
-            ai_logger.error(f"[Bulk Persistence Node] Error updating applicant {result.applicant_id}: {str(e)}")
-            error_count += 1
-
-    # Update state with final status
-    state["status"] = "completed"
-    state["error_count"] = state.get("error_count", 0) + error_count
-
-    ai_logger.info(f"[Bulk Persistence Node] Completed bulk persistence, errors: {error_count}, final status: {state['status']}")
-
-    return state
