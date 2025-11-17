@@ -30,7 +30,6 @@ def data_retrieval_node(state: GraphState) -> GraphState:
     Worker node: Retrieves pre-parsed raw resume text from Applicant model
     """
     current_idx = state.get("current_index", 0)
-    results = state.get("results", [])
     error_count = state.get("error_count", 0)
 
     ai_logger.info(f"[Data Retrieval Node] Starting data retrieval for index {current_idx}")
@@ -257,7 +256,7 @@ def categorization_node(state: GraphState) -> GraphState:
     return state
 
 
-def justification_node(state: GraphState) -> GraphState:
+def justification_node(state: GraphState):
     """
     Worker node: Calls Ollama to generate justification_summary
     """
@@ -316,7 +315,8 @@ def justification_node(state: GraphState) -> GraphState:
                 # Store in the currently available AIAnalysisResponse object in the graph's state
                 state["current_analysis_response"].justification_summary = justification
 
-                return state
+                ai_logger.info(f"Merging Analysis Response For Applicant: {applicant_id}")
+                return {"results": [state["current_analysis_response"]]}
             except Exception as e:
                 ai_logger.error(f"[Justification Node] Error in justification_node for applicant {applicant_id}: {str(e)}")
 
@@ -334,10 +334,11 @@ def justification_node(state: GraphState) -> GraphState:
                 # Store results in the current analysis response 
                 state["current_analysis_response"].justification_summary = f"Error processing: {str(e)}"
 
-                return state
+                return {"results": [state["current_analysis_response"]]}
 
     ai_logger.info(f"[Justification Node] Completed without processing applicant")
-    return state
+    state["current_analysis_response"].justification_summary = "[Justification Node] Completed without processing applicant"
+    return {"results": [state["current_analysis_response"]]}
 
 
 def create_worker_graph():
@@ -400,19 +401,8 @@ def create_supervisor_graph():
             # Return the sends to trigger parallel execution
             return sends
         else: 
-            return "process_results"
+            return "bulk_persistence"
 
-    def process_results(state: GraphState) -> GraphState:
-        """
-        Collect and process results from all workers before persistence
-        """
-        analysis_response = state.get("current_analysis_response", [])
-        ai_logger.info(f"Merging Analysis Response For Applicant: {analysis_response.applicant_id}")
-
-        # This would collect results from all parallel workers
-        # In our current setup, we're handling results collection in the worker node
-        return {"results": [analysis_response]}
-        
     def bulk_persistence_node(state: GraphState):
         """
         Bulk Persistence Node: Updates Applicant records in SQLite3 database via Django ORM
@@ -444,11 +434,12 @@ def create_supervisor_graph():
 
         # Update state with final status
         state["status"] = "completed"
-        state["error_count"] = state.get("error_count", 0) + error_count
+        new_state_error_count = state.get("error_count", 0) + error_count
 
         ai_logger.info(f"[Bulk Persistence Node] Completed bulk persistence, errors: {error_count}, final status: {state['status']}")
 
-        return state
+        return {"status": "completed", "error_count": new_state_error_count}
+        
     # Create the supervisor graph
     supervisor_graph = StateGraph(GraphState)
     # Compiled worker subgraph
@@ -456,12 +447,11 @@ def create_supervisor_graph():
     
     # Add Nodes
     supervisor_graph.add_node("WorkerSubGraph", worker_subgraph)
-    supervisor_graph.add_node("process_results", process_results)
     supervisor_graph.add_node("bulk_persistence", bulk_persistence_node)
 
     # Add Edges 
-    supervisor_graph.add_conditional_edges(START, continue_to_process, {"WorkerSubGraph", "process_results"})
-    supervisor_graph.add_edge("process_results", "bulk_persistence")
+    supervisor_graph.add_conditional_edges(START, continue_to_process)
+    supervisor_graph.add_edge("WorkerSubGraph", "bulk_persistence")
     supervisor_graph.add_edge("bulk_persistence", END)
-    
+
     return supervisor_graph.compile()
