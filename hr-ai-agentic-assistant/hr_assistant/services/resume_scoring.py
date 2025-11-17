@@ -115,6 +115,14 @@ class ResumeScoringService:
                 ai_logger.warning(f"Applicant {aid} has empty or null parsed_resume_text")
             else:
                 ai_logger.info(f"Applicant {aid} has resume text of length {len(resume_text)}")
+        
+        initial_ai_analysis_response = AIAnalysisResponse(
+                        overall_score=0,
+                        quality_grade="F",
+                        categorization="Mismatched",
+                        justification_summary="",
+                        applicant_id=0
+                    )
 
         initial_state = GraphState(
             applicant_id_list=applicant_ids_list,
@@ -125,7 +133,8 @@ class ResumeScoringService:
             error_count=0,
             total_count=len(applicants),
             resume_texts=resume_texts_dict,  # Use empty string if None
-            job_requirements=job_listing.detailed_description or ""
+            job_requirements = job_listing.detailed_description or "",
+            current_analysis_response = initial_ai_analysis_response
         )
 
 
