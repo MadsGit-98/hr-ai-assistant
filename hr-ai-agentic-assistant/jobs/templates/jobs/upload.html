@@ -49,6 +49,24 @@
                 <h3 class="text-lg font-medium mb-4">Upload Progress</h3>
                 <div id="progress-container" class="space-y-3"></div>
             </div>
+            
+            <!-- AI Scoring Section (will be shown after upload is completed) -->
+            <div id="scoring-section" class="mt-6 hidden">
+                <div class="mb-4">
+                    <h3 class="text-lg font-medium mb-4">AI Scoring</h3>
+                    <button id="start-scoring-btn" class="bg-purple-600 hover:bg-purple-700 text-white font-medium py-2 px-6 rounded">
+                        Start AI Scoring
+                    </button>
+                </div>
+                <div id="scoring-progress-section" class="hidden">
+                    <h4 class="text-md font-medium mb-2">Scoring Progress</h4>
+                    <div class="w-full bg-gray-200 rounded-full h-4 mb-2">
+                        <div id="scoring-progress-bar" class="bg-green-600 h-4 rounded-full" style="width: 0%"></div>
+                    </div>
+                    <div id="scoring-status-message" class="text-sm text-gray-600 mb-4">Initializing...</div>
+                    <div id="scoring-details" class="text-sm text-gray-700 bg-gray-50 p-3 rounded border hidden"></div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -56,6 +74,9 @@
     <script>
         // Define the upload URL as a global variable for the external script to use
         const uploadUrl = "{% url 'applicant_upload' %}";
+        // Define the job ID for the JavaScript to access
+        // Get the active job listing ID from the context or find the active one
+        const jobId = {{ active_job_listing.id|default:"null" }};
     </script>
     <script src="{% static 'js/upload.js' %}"></script>
 </body>

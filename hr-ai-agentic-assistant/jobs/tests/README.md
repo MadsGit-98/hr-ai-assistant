@@ -45,11 +45,22 @@ python manage.py test jobs.tests.jobs.test_job_activation_selenium
 python manage.py test jobs.tests.jobs.test_resume_selenium
 ```
 
-## Resume Upload Feature
+### Run AI Resume Scoring Engine tests
+```bash
+# Run all AI scoring tests
+python manage.py test jobs.tests.jobs.test_ai_
 
-The HR AI Assistant includes a bulk resume upload feature that allows hiring managers to securely upload multiple applicant resumes in bulk.
+# Run specific AI tests
+python manage.py test jobs.tests.jobs.test_ai_contracts
+python manage.py test jobs.tests.jobs.test_ai_scoring_integration
+python manage.py test jobs.tests.jobs.test_ai_scoring_api
+```
 
-### Features
+## Features
+
+The HR AI Assistant includes several core features for HR management:
+
+### Resume Upload Feature
 
 1. **Bulk Upload**: Upload multiple resumes at once via drag-and-drop or file selection
 2. **Format Support**: Accepts PDF and DOCX file formats
@@ -57,6 +68,33 @@ The HR AI Assistant includes a bulk resume upload feature that allows hiring man
 4. **Visual Feedback**: Provides immediate status feedback during upload process
 5. **GDPR Compliance**: Implements data protection measures for applicant information
 6. **Secure Storage**: Validates file types and stores files securely
+
+### AI Resume Scoring Engine
+
+The HR AI Assistant includes an advanced AI-powered resume scoring engine that automatically analyzes and scores resumes against job requirements.
+
+#### Features
+
+1. **Automated Scoring**: Generates three distinct metrics for each resume:
+   - Overall Score (0-100): A single metric representing fitness for the job
+   - Categorization: Assigning the candidate to a proficiency tier (e.g., "Senior," "Mid-Level," "Junior," or "Mismatched")
+   - Quality Grade (A, B, C, D, F): A letter grade reflecting the quality and relevance of experience
+2. **AI-Powered Analysis**: Uses LangGraph orchestration with Ollama LLM for intelligent scoring
+3. **Map-Reduce Processing**: Implements parallel processing for efficient bulk resume analysis
+4. **Status Tracking**: Shows "Processing..." status during analysis with notifications when complete
+5. **Detailed Analysis**: Provides detailed explanations for how each score was determined
+6. **Filtering and Sorting**: Allows filtering and sorting candidates based on their scores and categories
+7. **Batch Processing**: Initiates processing of all uploaded resumes against an active job listing
+
+#### How to Use
+
+1. Navigate to the job listings page and select an active job listing
+2. Initiate the resume scoring process via the API endpoint: `/api/job-listings/{job_id}/score-resumes/`
+3. The system returns a 202 status code and processes in the background
+4. Check the processing status at: `/api/job-listings/{job_id}/scoring-status/`
+5. Retrieve scored applicants at: `/api/job-listings/{job_id}/scored-applicants/`
+6. View detailed analysis for individual applicants via the detailed analysis endpoint
+7. Filter and sort results by scores, categories, and grades as needed
 
 ### How to Use
 
@@ -95,7 +133,7 @@ INSTALLED_APPS = [
 
 ## Test Coverage
 
-The tests cover critical user journeys for both features:
+The tests cover critical user journeys for all features:
 
 ### Job Listing Management Tests
 
@@ -140,6 +178,28 @@ The tests cover critical user journeys for both features:
    - Testing bulk upload functionality
    - Visual feedback verification
    - Duplicate detection UI alerts
+
+### AI Resume Scoring Engine Tests
+
+1. **AI Analysis Contract Tests** (`test_ai_contracts.py`):
+   - Validate the AIAnalysisResponse data contract
+   - Test overall score range (0-100)
+   - Test quality grade format (A, B, C, D, F)
+   - Test categorization values (Senior, Mid-Level, Junior, Mismatched)
+
+2. **AI Scoring Integration Tests** (`test_ai_scoring_integration.py`):
+   - Test the full scoring pipeline including API endpoints
+   - Verify scoring initiation process returns correct status codes
+   - Test scoring status endpoint functionality
+   - Validate detailed analysis endpoint responses
+   - Test applicant scoring with various scenarios
+
+3. **AI Scoring API Contract Tests** (`test_ai_scoring_api.py`):
+   - Validate API contract for score-resumes endpoint
+   - Test scoring-status endpoint response structure
+   - Verify scored-applicants endpoint contract
+   - Test detailed-analysis endpoint contract
+   - Ensure proper error responses for invalid requests
 
 ## Notes
 

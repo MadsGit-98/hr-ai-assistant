@@ -139,6 +139,49 @@ class Applicant(models.Model):
         ],
         help_text="Current status of AI processing"
     )
+    analysis_status = models.CharField(
+        max_length=15,
+        default='pending',
+        choices=[
+            ('pending', 'Pending'),
+            ('analyzed', 'Analyzed'),
+            ('error', 'Error')
+        ],
+        help_text="Status of the analysis process"
+    )
+    # Fields for AI analysis results
+    overall_score = models.IntegerField(
+        null=True,
+        blank=True,
+        help_text="Overall score (0-100) representing fitness for the job"
+    )
+    quality_grade = models.CharField(
+        max_length=1,
+        null=True,
+        blank=True,
+        help_text="Quality grade (A, B, C, D, F) reflecting quality of experience"
+    )
+    categorization = models.CharField(
+        max_length=20,
+        null=True,
+        blank=True,
+        help_text="Categorization (e.g., Senior, Mid-Level, Junior, Mismatched)"
+    )
+    justification_summary = models.TextField(
+        null=True,
+        blank=True,
+        help_text="AI-generated justification for the scores"
+    )
+    analysis_timestamp = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="Date and time when the analysis was completed"
+    )
+    parsed_resume_text = models.TextField(
+        null=True,
+        blank=True,
+        help_text="Parsed text content from resume file"
+    )
     ai_analysis_result = models.JSONField(
         null=True,
         blank=True,
@@ -191,9 +234,13 @@ class Applicant(models.Model):
         # 2. upload_date: B-tree index for chronological queries
         # 3. processing_status: B-tree index for status-based filtering
         # 4. applicant_name: B-tree index for name-based searches
+        # 5. overall_score: B-tree index for sorting operations
+        # 6. (job_listing_id, processing_status): B-tree index for efficient filtering
         indexes = [
             models.Index(fields=['content_hash']),
             models.Index(fields=['upload_date']),
             models.Index(fields=['processing_status']),
             models.Index(fields=['applicant_name']),
+            models.Index(fields=['overall_score']),
+            models.Index(fields=['job_listing', 'processing_status']),
         ]

@@ -14,7 +14,7 @@ Sync Impact Report:
 Web Framework MUST be Django (latest stable version). Local LLM Hosting MUST ONLY use Ollama. AI Agent Orchestration MUST use LangGraph for complex workflow logic. Primary Data Store MUST be SQLite3.
 
 ### Architectural Integrity
-Strictly follow the Django Model-Template-View (MTV) design pattern. Architecture MUST prioritize minimal dependencies, leveraging core Python and Django features first. Abstraction Mandate: All interaction with Ollama and LangGraph MUST be encapsulated within dedicated service modules within the hr_assistant/services subdirectory. Views MUST NOT manage LLM state directly. All service modules MUST be located in the hr_assistant/services directory.
+Strictly follow the Django Model-Template-View (MTV) design pattern. Architecture MUST prioritize minimal dependencies, leveraging core Python and Django features first. Abstraction Mandate: All interaction with Ollama and LangGraph MUST be encapsulated within dedicated service modules within the hr_assistant/services subdirectory. Views MUST NOT manage LLM state directly. All service modules MUST be located in the hr_assistant/services directory. The jobs Django application is a valid sub-app within the hr_assistant project for organizing models, views, and other components.
 
 ### Frontend/UX Simplicity
 User Interface (UX) MUST be extremely simple and minimal, focusing on the three core flows: Upload, Process, and Report. Design MUST be fully responsive and utilize a mobile-first approach with fluid layouts. Tailwind css must be used for styling.
