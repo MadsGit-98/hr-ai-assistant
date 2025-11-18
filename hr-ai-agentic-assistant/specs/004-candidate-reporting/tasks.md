@@ -38,12 +38,12 @@
 
 Examples of foundational tasks (adjust based on your project):
 
-- [ ] T004 Update Applicant model with is_shortlisted field in jobs/models.py
-- [ ] T005 Create database migration for is_shortlisted field in jobs/migrations/
-- [ ] T006 [P] Create report utility module in hr_assistant/services/report_utils.py
-- [ ] T007 Create scoring results HTML template in templates/scoring_results.html
-- [ ] T008 [P] Create reporting JavaScript file in static/js/reporting.js
-- [ ] T009 Create Tailwind CSS for responsive table in static/css/tailwind.css
+- [x] T004 Update Applicant model with is_shortlisted field in jobs/models.py
+- [x] T005 Create database migration for is_shortlisted field in jobs/migrations/
+- [x] T006 [P] Create report utility module in hr_assistant/services/report_utils.py
+- [x] T007 Create scoring results HTML template in templates/scoring_results.html
+- [x] T008 [P] Create reporting JavaScript file in static/js/reporting.js
+- [x] T009 Create Tailwind CSS for responsive table in static/css/tailwind.css
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
 
@@ -57,14 +57,14 @@ Examples of foundational tasks (adjust based on your project):
 
 ### Implementation for User Story 1
 
-- [ ] T010 [P] [US1] Create CandidateReportView class-based view in jobs/views.py
-- [ ] T011 [US1] Implement GET endpoint for /scoring_results/ in jobs/urls.py and views.py
-- [ ] T012 [US1] Fetch all analyzed applicants from database in views.py (max 500 per spec)
-- [ ] T013 [US1] Implement default sorting by Overall Score descending in report_utils.py
-- [ ] T014 [US1] Pass required candidate data to template: Name, Overall Score, Categorization, Quality Grade, and Justification Summary
-- [ ] T015 [US1] Create HTML table structure in scoring_results.html with all required fields
-- [ ] T016 [US1] Implement responsive table with Tailwind CSS classes in scoring_results.html
-- [ ] T017 [US1] Add AI Justification Summary with expand/collapse functionality in scoring_results.html and reporting.js
+- [x] T010 [P] [US1] Create CandidateReportView class-based view in jobs/views.py
+- [x] T011 [US1] Implement GET endpoint for /scoring_results/ in jobs/urls.py and views.py
+- [x] T012 [US1] Fetch all analyzed applicants from database in views.py (max 500 per spec)
+- [x] T013 [US1] Implement default sorting by Overall Score descending in report_utils.py
+- [x] T014 [US1] Pass required candidate data to template: Name, Overall Score, Categorization, Quality Grade, and Justification Summary
+- [x] T015 [US1] Create HTML table structure in scoring_results.html with all required fields
+- [x] T016 [US1] Implement responsive table with Tailwind CSS classes in scoring_results.html
+- [x] T017 [US1] Add AI Justification Summary with expand/collapse functionality in scoring_results.html and reporting.js
 
 **Checkpoint**: At this point, User Story 1 should be fully functional and testable independently
 
@@ -78,13 +78,13 @@ Examples of foundational tasks (adjust based on your project):
 
 ### Implementation for User Story 2
 
-- [ ] T018 [P] [US2] Implement query parameter parsing for sorting in CandidateReportView
-- [ ] T019 [US2] Add sorting logic by multiple columns in report_utils.py
-- [ ] T020 [US2] Implement toggle between ascending/descending in report_utils.py
-- [ ] T021 [US2] Add column header click handlers in scoring_results.html and reporting.js
-- [ ] T022 [US2] Update URL with sort parameters when clicking headers
-- [ ] T023 [US2] Add visual indicators for sort direction in scoring_results.html
-- [ ] T024 [US2] Optimize sorting performance to meet 1-second response time requirement (SC-005)
+- [x] T018 [P] [US2] Implement query parameter parsing for sorting in CandidateReportView
+- [x] T019 [US2] Add sorting logic by multiple columns in report_utils.py
+- [x] T020 [US2] Implement toggle between ascending/descending in report_utils.py
+- [x] T021 [US2] Add column header click handlers in scoring_results.html and reporting.js
+- [x] T022 [US2] Update URL with sort parameters when clicking headers
+- [x] T023 [US2] Add visual indicators for sort direction in scoring_results.html
+- [x] T024 [US2] Optimize sorting performance to meet 1-second response time requirement (SC-005)
 
 **Checkpoint**: At this point, User Stories 1 AND 2 should both work independently
 
@@ -98,13 +98,13 @@ Examples of foundational tasks (adjust based on your project):
 
 ### Implementation for User Story 3
 
-- [ ] T025 [P] [US3] Implement score threshold query parameter parsing in CandidateReportView
-- [ ] T026 [US3] Add in-memory filtering logic in report_utils.py
-- [ ] T027 [US3] Create filter input UI in scoring_results.html
-- [ ] T028 [US3] Add filter button and event handlers in reporting.js
-- [ ] T029 [US3] Update URL with filter parameters
-- [ ] T030 [US3] Handle case when no candidates meet filter criteria (empty state)
-- [ ] T031 [US3] Optimize filtering performance to meet 2-second response time requirement with up to 500 candidates (SC-002)
+- [x] T025 [P] [US3] Implement score threshold query parameter parsing in CandidateReportView
+- [x] T026 [US3] Add in-memory filtering logic in report_utils.py
+- [x] T027 [US3] Create filter input UI in scoring_results.html
+- [x] T028 [US3] Add filter button and event handlers in reporting.js
+- [x] T029 [US3] Update URL with filter parameters
+- [x] T030 [US3] Handle case when no candidates meet filter criteria (empty state)
+- [x] T031 [US3] Optimize filtering performance to meet 2-second response time requirement with up to 500 candidates (SC-002)
 
 **Checkpoint**: At this point, User Stories 1, 2 AND 3 should all work independently
 
@@ -118,13 +118,13 @@ Examples of foundational tasks (adjust based on your project):
 
 ### Implementation for User Story 4
 
-- [ ] T032 [P] [US4] Create shortlist toggle endpoint in jobs/views.py
-- [ ] T033 [US4] Add POST endpoint for /api/candidates/<id>/toggle-shortlist/ in jobs/urls.py
-- [ ] T034 [US4] Implement logic to toggle is_shortlisted status in views.py
-- [ ] T035 [US4] Add shortlist/unshortlist buttons to each candidate row in scoring_results.html
-- [ ] T036 [US4] Implement AJAX request handling in reporting.js
-- [ ] T037 [US4] Update UI to reflect shortlist status without page refresh
-- [ ] T038 [US4] Preserve current sorting and filtering when toggling shortlist (FR-009)
+- [x] T032 [P] [US4] Create shortlist toggle endpoint in jobs/views.py
+- [x] T033 [US4] Add POST endpoint for /api/candidates/<id>/toggle-shortlist/ in jobs/urls.py
+- [x] T034 [US4] Implement logic to toggle is_shortlisted status in views.py
+- [x] T035 [US4] Add shortlist/unshortlist buttons to each candidate row in scoring_results.html
+- [x] T036 [US4] Implement AJAX request handling in reporting.js
+- [x] T037 [US4] Update UI to reflect shortlist status without page refresh
+- [x] T038 [US4] Preserve current sorting and filtering when toggling shortlist (FR-009)
 
 **Checkpoint**: All user stories should now be independently functional
 
@@ -134,14 +134,14 @@ Examples of foundational tasks (adjust based on your project):
 
 **Purpose**: Improvements that affect multiple user stories
 
-- [ ] T039 [P] Documentation updates in docs/
-- [ ] T040 Code cleanup and refactoring
-- [ ] T041 Performance optimization across all stories (ensure page loads under 5 seconds with 500 candidates)
-- [ ] T042 [P] Unit tests for report_utils.py functions
-- [ ] T043 Security hardening (ensure proper authentication)
-- [ ] T044 Run quickstart.md validation
-- [ ] T045 Handle edge cases: empty lists, simultaneous filter/sort operations, long AI summaries
-- [ ] T046 Verify all functional requirements (FR-001 through FR-014) are met
+- [x] T039 [P] Documentation updates in docs/
+- [x] T040 Code cleanup and refactoring
+- [x] T041 Performance optimization across all stories (ensure page loads under 5 seconds with 500 candidates)
+- [x] T042 [P] Unit tests for report_utils.py functions
+- [x] T043 Security hardening (ensure proper authentication)
+- [x] T044 Run quickstart.md validation
+- [x] T045 Handle edge cases: empty lists, simultaneous filter/sort operations, long AI summaries
+- [x] T046 Verify all functional requirements (FR-001 through FR-014) are met
 
 ---
 
