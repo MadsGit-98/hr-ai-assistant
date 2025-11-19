@@ -8,8 +8,7 @@ from jobs.models import JobListing, Applicant
 from hr_assistant.services.report_utils import (
     get_candidates_for_job,
     sort_candidates,
-    filter_candidates_by_score,
-    toggle_shortlist_status
+    filter_candidates_by_score
 )
 from datetime import datetime
 
@@ -37,10 +36,9 @@ class TestReportUtils(TestCase):
             categorization="Senior",
             quality_grade="A",
             justification_summary="Excellent experience with Python and Django",
-            analysis_status='analyzed',
-            is_shortlisted=False
+            analysis_status='analyzed'
         )
-        
+
         self.applicant2 = Applicant.objects.create(
             job_listing=self.job,
             applicant_name="Jane Smith",
@@ -52,10 +50,9 @@ class TestReportUtils(TestCase):
             categorization="Mid-Level",
             quality_grade="B",
             justification_summary="Good experience with web development",
-            analysis_status='analyzed',
-            is_shortlisted=True
+            analysis_status='analyzed'
         )
-        
+
         self.applicant3 = Applicant.objects.create(
             job_listing=self.job,
             applicant_name="Bob Johnson",
@@ -67,8 +64,7 @@ class TestReportUtils(TestCase):
             categorization="Senior",
             quality_grade="A",
             justification_summary="Outstanding experience and skills",
-            analysis_status='analyzed',
-            is_shortlisted=False
+            analysis_status='analyzed'
         )
 
     def test_get_candidates_for_job_default_sorting(self):
@@ -184,30 +180,6 @@ class TestReportUtils(TestCase):
         filtered = filter_candidates_by_score(candidates, 0)
         self.assertEqual(len(filtered), 3)
     
-    def test_toggle_shortlist_status(self):
-        """Test toggling shortlist status."""
-        # Initially, applicant1 is not shortlisted
-        self.assertFalse(self.applicant1.is_shortlisted)
-        
-        # Toggle status
-        new_status = toggle_shortlist_status(self.applicant1.id)
-        self.assertTrue(new_status)
-        
-        # Refresh from DB to confirm change
-        self.applicant1.refresh_from_db()
-        self.assertTrue(self.applicant1.is_shortlisted)
-        
-        # Toggle again to unshortlist
-        new_status = toggle_shortlist_status(self.applicant1.id)
-        self.assertFalse(new_status)
-        
-        self.applicant1.refresh_from_db()
-        self.assertFalse(self.applicant1.is_shortlisted)
-
-    def test_toggle_shortlist_status_nonexistent(self):
-        """Test toggling shortlist status for non-existent candidate."""
-        result = toggle_shortlist_status(99999)  # Non-existent ID
-        self.assertFalse(result)  # Should return False
 
     def test_get_candidates_for_job_with_invalid_job(self):
         """Test get_candidates_for_job with invalid job ID."""
