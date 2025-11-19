@@ -117,20 +117,3 @@ def filter_candidates_by_score(candidates: List[Applicant],
     return [c for c in candidates if c.overall_score and c.overall_score >= score_threshold]
 
 
-def toggle_shortlist_status(candidate_id: int) -> bool:
-    """
-    Toggle the shortlist status of an applicant.
-    
-    Args:
-        candidate_id: ID of the candidate to update
-        
-    Returns:
-        New shortlist status (True if shortlisted, False if not)
-    """
-    try:
-        applicant = Applicant.objects.get(id=candidate_id)
-        applicant.is_shortlisted = not applicant.is_shortlisted
-        applicant.save()
-        return applicant.is_shortlisted
-    except Applicant.DoesNotExist:
-        return False

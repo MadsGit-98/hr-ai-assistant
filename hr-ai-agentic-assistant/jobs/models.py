@@ -187,10 +187,6 @@ class Applicant(models.Model):
         blank=True,
         help_text="JSON data containing the results of AI analysis"
     )
-    is_shortlisted = models.BooleanField(
-        default=False,
-        help_text="Flag indicating if the candidate is marked for interview"
-    )
 
     def clean(self):
         """
@@ -240,7 +236,6 @@ class Applicant(models.Model):
         # 4. applicant_name: B-tree index for name-based searches
         # 5. overall_score: B-tree index for sorting operations
         # 6. (job_listing_id, processing_status): B-tree index for efficient filtering
-        # 7. is_shortlisted: B-tree index for quick filtering of shortlisted candidates
         indexes = [
             models.Index(fields=['content_hash']),
             models.Index(fields=['upload_date']),
@@ -248,5 +243,4 @@ class Applicant(models.Model):
             models.Index(fields=['applicant_name']),
             models.Index(fields=['overall_score']),
             models.Index(fields=['job_listing', 'processing_status']),
-            models.Index(fields=['is_shortlisted']),
         ]

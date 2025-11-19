@@ -471,7 +471,6 @@ class CandidateReportView(View):
                 'categorization': candidate.categorization,
                 'quality_grade': candidate.quality_grade,
                 'justification_summary': candidate.justification_summary or '',
-                'is_shortlisted': candidate.is_shortlisted,
             }
             candidate_data.append(candidate_dict)
 
@@ -494,31 +493,6 @@ class CandidateReportView(View):
 
         return render(request, self.template_name, context)
 
-
-@csrf_exempt
-def toggle_shortlist_status(request, candidate_id):
-    """
-    API endpoint to toggle the shortlist status of a candidate.
-    """
-    from hr_assistant.services.report_utils import toggle_shortlist_status as util_toggle_shortlist
-
-    if request.method == 'POST':
-        new_status = util_toggle_shortlist(candidate_id)
-
-        if new_status is not False:  # False indicates the candidate was not found
-            return JsonResponse({
-                'candidate_id': candidate_id,
-                'is_shortlisted': new_status,
-                'message': 'Candidate shortlist status updated successfully'
-            })
-        else:
-            return JsonResponse({
-                'error': 'Candidate not found'
-            }, status=404)
-    else:
-        return JsonResponse({
-            'error': 'Invalid request method. Use POST.'
-        }, status=400)
 
 
 class ScoringResultsView(View):
@@ -593,7 +567,6 @@ class CandidateReportAPIView(View):
                 'categorization': candidate.categorization,
                 'quality_grade': candidate.quality_grade,
                 'justification_summary': candidate.justification_summary or '',
-                'is_shortlisted': candidate.is_shortlisted,
             }
             candidate_data.append(candidate_dict)
 

@@ -121,15 +121,6 @@ function renderCandidateTable() {
                           : ''}
                     </div>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm">
-                    <button 
-                        class="toggle-shortlist-btn ${candidate.is_shortlisted ? 'bg-green-100 text-green-800 hover:bg-green-200' : 'bg-gray-100 text-gray-800 hover:bg-gray-200'} px-3 py-1 rounded-md text-sm font-medium"
-                        data-candidate-id="${candidate.id}"
-                        data-is-shortlisted="${candidate.is_shortlisted}"
-                    >
-                        ${candidate.is_shortlisted ? 'Unshortlist' : 'Shortlist'}
-                    </button>
-                </td>
             </tr>
         `;
     });
@@ -156,72 +147,10 @@ function renderCandidateTable() {
         });
     });
     
-    // Add event listeners for shortlist buttons
-    document.querySelectorAll('.toggle-shortlist-btn').forEach(button => {
-        button.addEventListener('click', function() {
-            const candidateId = this.dataset.candidateId;
-            const currentStatus = this.dataset.isShortlisted === 'True';
-            toggleShortlistStatus(candidateId, currentStatus, this);
-        });
-    });
-    
     // Update sort indicators
     updateSortIndicators();
 }
 
-// Toggle shortlist status via API
-async function toggleShortlistStatus(candidateId, currentStatus, buttonElement) {
-    try {
-        // Temporarily disable the button to prevent double clicks
-        buttonElement.disabled = true;
-        buttonElement.classList.add('opacity-50', 'cursor-not-allowed');
-
-        const response = await fetch(`/jobs/api/candidates/${candidateId}/toggle-shortlist/`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': getCSRFToken()
-            }
-        });
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
-
-        // Find the candidate in our data and update the status
-        const candidateIndex = candidateData.findIndex(candidate => candidate.id == candidateId);
-        if (candidateIndex !== -1) {
-            candidateData[candidateIndex].is_shortlisted = data.is_shortlisted;
-
-            // Update the button text and class
-            if (data.is_shortlisted) {
-                buttonElement.textContent = 'Unshortlist';
-                buttonElement.classList.remove('bg-gray-100', 'text-gray-800', 'hover:bg-gray-200');
-                buttonElement.classList.add('bg-green-100', 'text-green-800', 'hover:bg-green-200');
-            } else {
-                buttonElement.textContent = 'Shortlist';
-                buttonElement.classList.remove('bg-green-100', 'text-green-800', 'hover:bg-green-200');
-                buttonElement.classList.add('bg-gray-100', 'text-gray-800', 'hover:bg-gray-200');
-            }
-
-            buttonElement.dataset.isShortlisted = data.is_shortlisted;
-        }
-    } catch (error) {
-        console.error('Error toggling shortlist status:', error);
-        // Provide more specific error information
-        if (error.message.includes('404')) {
-            alert('Candidate not found. Please refresh the page and try again.');
-        } else {
-            alert('Failed to update shortlist status. Please try again.');
-        }
-    } finally {
-        // Re-enable the button
-        buttonElement.disabled = false;
-        buttonElement.classList.remove('opacity-50', 'cursor-not-allowed');
-    }
-}
 
 // Apply the score filter
 function applyFilter() {

@@ -32,5 +32,4 @@ urlpatterns = [
     path('scoring_results/', views.CandidateReportView.as_view(), name='candidate_report'),
     path('jobs/<int:job_id>/candidates/', views.CandidateReportView.as_view(), name='candidate_report_by_job'),
     path('api/candidates/', views.CandidateReportAPIView.as_view(), name='candidate_report_api'),
-    path('api/candidates/<int:candidate_id>/toggle-shortlist/', views.toggle_shortlist_status, name='toggle_shortlist'),
 ]
