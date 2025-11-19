@@ -409,9 +409,183 @@ class DetailedAnalysisView(View):
             return JsonResponse({'error': f'Error retrieving analysis: {str(e)}'}, status=500)
 
 
+from hr_assistant.services.report_utils import get_candidates_for_job
+import json
+
+
+class CandidateReportView(View):
+    """
+    Django Class-Based View for the candidate report page.
+    Retrieves all analyzed candidates associated with the active job and renders the main report page.
+    Handles query parameters for sorting and filtering.
+    """
+    template_name = 'jobs/scoring_results.html'
+
+    def get(self, request, *args, **kwargs):
+        # Get job_id from URL kwargs or default to active job if available
+        job_id = kwargs.get('job_id')
+
+        if not job_id:
+            # If no job_id specified, try to get the active job
+            active_job = JobListing.objects.filter(is_active=True).first()
+            if active_job:
+                job_id = active_job.id
+            else:
+                # If no active job, return empty list
+                context = {
+                    'job_id': None,
+                    'candidates': [],
+                    'job_title': 'No Active Job'
+                }
+                return render(request, self.template_name, context)
+
+        # Get query parameters for sorting and filtering
+        sort_by = request.GET.get('sort_by', 'overall_score')
+        sort_order = request.GET.get('sort_order', 'desc')
+
+        # Safely handle score threshold parameter, defaulting to 0 if invalid
+        try:
+            score_threshold = int(request.GET.get('score_threshold', 0))
+        except ValueError:
+            score_threshold = 0
+
+        # Validate and limit score threshold (0-100 as per spec)
+        if not (0 <= score_threshold <= 100):
+            score_threshold = 0
+
+        # Get candidates using the report utility function
+        candidates = get_candidates_for_job(
+            job_id=job_id,
+            sort_by=sort_by,
+            sort_order=sort_order,
+            score_threshold=score_threshold
+        )
+
+        # Prepare candidate data for the template
+        candidate_data = []
+        for candidate in candidates:
+            candidate_dict = {
+                'id': candidate.id,
+                'applicant_name': candidate.applicant_name,
+                'overall_score': candidate.overall_score,
+                'categorization': candidate.categorization,
+                'quality_grade': candidate.quality_grade,
+                'justification_summary': candidate.justification_summary or '',
+            }
+            candidate_data.append(candidate_dict)
+
+        # Get job title for context
+        try:
+            job = JobListing.objects.get(id=job_id)
+            job_title = job.title
+        except JobListing.DoesNotExist:
+            job_title = 'Unknown Job'
+
+        # Create context for the template
+        context = {
+            'job_id': job_id,
+            'job_title': job_title,
+            'candidates': candidate_data,
+            'sort_by': sort_by,
+            'sort_order': sort_order,
+            'score_threshold': score_threshold,
+        }
+
+        return render(request, self.template_name, context)
+
+
+
 class ScoringResultsView(View):
     """
     View to display the results of the AI scoring process
     """
     def get(self, request):
         return render(request, 'jobs/scoring_results.html')
+
+
+class CandidateReportAPIView(View):
+    """
+    API endpoint to return candidate data for the reporting page
+    """
+    def get(self, request):
+        from hr_assistant.services.report_utils import get_candidates_for_job
+
+        # Get job_id from query parameters or try to get active job
+        job_id = request.GET.get('job_id')
+        if not job_id:
+            # Try to get the active job
+            active_job = JobListing.objects.filter(is_active=True).first()
+            if active_job:
+                job_id = int(active_job.id)  # Convert to int immediately when getting from active job
+            else:
+                # If no active job, return empty list
+                return JsonResponse({
+                    'job_id': None,
+                    'candidates': [],
+                    'job_title': 'No Active Job'
+                })
+        else:
+            job_id = int(job_id)
+
+        # If we have a job_id (not None), use it to get candidates
+        if job_id:
+            # Get query parameters for sorting and filtering
+            sort_by = request.GET.get('sort_by', 'overall_score')
+            sort_order = request.GET.get('sort_order', 'desc')
+
+            # Safely handle score threshold parameter, defaulting to 0 if invalid
+            try:
+                score_threshold = int(request.GET.get('score_threshold', 0))
+            except ValueError:
+                score_threshold = 0
+
+            # Validate and limit score threshold (0-100 as per spec)
+            if not (0 <= score_threshold <= 100):
+                score_threshold = 0
+
+            # Get candidates using the report utility function
+            candidates = get_candidates_for_job(
+                job_id=job_id,
+                sort_by=sort_by,
+                sort_order=sort_order,
+                score_threshold=score_threshold
+            )
+        else:
+            # If no job_id (None), return empty list
+            candidates = []
+            sort_by = 'overall_score'
+            sort_order = 'desc'
+            score_threshold = 0
+
+        # Prepare candidate data for the API response
+        candidate_data = []
+        for candidate in candidates:
+            candidate_dict = {
+                'id': candidate.id,
+                'applicant_name': candidate.applicant_name,
+                'overall_score': candidate.overall_score,
+                'categorization': candidate.categorization,
+                'quality_grade': candidate.quality_grade,
+                'justification_summary': candidate.justification_summary or '',
+            }
+            candidate_data.append(candidate_dict)
+
+        # Get job title for context
+        if job_id:
+            try:
+                job = JobListing.objects.get(id=job_id)
+                job_title = job.title
+            except JobListing.DoesNotExist:
+                job_title = 'Unknown Job'
+        else:
+            job_title = 'No Active Job'
+
+        # Return JSON response
+        return JsonResponse({
+            'job_id': job_id,
+            'job_title': job_title,
+            'candidates': candidate_data,
+            'sort_by': sort_by,
+            'sort_order': sort_order,
+            'score_threshold': score_threshold,
+        })

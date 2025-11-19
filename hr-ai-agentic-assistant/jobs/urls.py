@@ -4,7 +4,7 @@ from . import views
 urlpatterns = [
     # Resume upload endpoint
     path('upload/', views.ApplicantUploadView.as_view(), name='applicant_upload'),
-    
+
     # T018: URL for creating job listings
     path('', views.JobListingCreateView.as_view(), name='joblisting_create'),
 
@@ -27,4 +27,9 @@ urlpatterns = [
 
     # AI Resume Scoring Results page
     path('scoring-results/', views.ScoringResultsView.as_view(), name='scoring_results'),
+
+    # Candidate Reporting and Shortlisting Feature
+    path('scoring_results/', views.CandidateReportView.as_view(), name='candidate_report'),
+    path('jobs/<int:job_id>/candidates/', views.CandidateReportView.as_view(), name='candidate_report_by_job'),
+    path('api/candidates/', views.CandidateReportAPIView.as_view(), name='candidate_report_api'),
 ]
